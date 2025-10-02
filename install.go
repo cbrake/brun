@@ -122,12 +122,12 @@ func installUserService(execPath string) error {
 // generateSystemServiceFile generates the systemd service file content for system service
 func generateSystemServiceFile(execPath string) string {
 	return fmt.Sprintf(`[Unit]
-Description=Simple CI - Continuous Integration for Hardware Testing
+Description=Simple CI
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%s start /etc/simpleci/config.yaml
+ExecStart=%s run /etc/simpleci/config.yaml
 StandardOutput=journal
 StandardError=journal
 Restart=no
@@ -143,12 +143,12 @@ func generateUserServiceFile(execPath string) string {
 	configPath := filepath.Join(homeDir, ".config", "simpleci", "config.yaml")
 
 	return fmt.Sprintf(`[Unit]
-Description=Simple CI - Continuous Integration for Hardware Testing
+Description=Simple CI
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%s start %s
+ExecStart=%s run %s
 StandardOutput=journal
 StandardError=journal
 Restart=no

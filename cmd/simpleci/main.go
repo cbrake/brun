@@ -20,8 +20,8 @@ func main() {
 	switch command {
 	case "install":
 		cmdInstall(args)
-	case "start":
-		cmdStart(args)
+	case "run":
+		cmdRun(args)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n\n", command)
 		printUsage()
@@ -32,7 +32,7 @@ func main() {
 func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args]\n\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Commands:\n")
-	fmt.Fprintf(os.Stderr, "  start <config-file>  Start simpleci with the given config file\n")
+	fmt.Fprintf(os.Stderr, "  run <config-file>    Run simpleci with the given config file\n")
 	fmt.Fprintf(os.Stderr, "  install              Install simpleci as a systemd service\n")
 }
 
@@ -44,9 +44,9 @@ func cmdInstall(args []string) {
 	fmt.Println("Installation completed successfully")
 }
 
-func cmdStart(args []string) {
+func cmdRun(args []string) {
 	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: %s start <config-file>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s run <config-file>\n", os.Args[0])
 		os.Exit(1)
 	}
 

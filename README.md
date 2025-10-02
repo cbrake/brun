@@ -27,7 +27,7 @@ go build -o simpleci ./cmd/simpleci
 
 Run Simple CI with a configuration file:
 
-- `simpleci start config.yaml`: (start the program)
+- `simpleci run config.yaml`: (run the program)
 - `simpleci install`: (install and setup the program)
 
 Simple CI can be configured for a one-time run (default), or a long running
