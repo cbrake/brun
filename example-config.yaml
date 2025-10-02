@@ -1,0 +1,7 @@
+units:
+  - system_booted:
+      name: boot-trigger
+      state_file: /tmp/simpleci-boot.state
+      trigger:
+        - build-unit
+        - test-unit
