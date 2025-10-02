@@ -88,11 +88,12 @@ func TestBootDetector_InvalidStateFile(t *testing.T) {
 	}
 }
 
-func TestSystemBootedTrigger_Check(t *testing.T) {
+func TestBootTrigger_Check(t *testing.T) {
 	tempDir := t.TempDir()
-	stateFile := filepath.Join(tempDir, "boot.state")
+	stateFile := filepath.Join(tempDir, "state.yaml")
 
-	trigger := NewSystemBootedTrigger("test-boot", stateFile, []string{"unit1"})
+	state := NewState(stateFile)
+	trigger := NewBootTrigger("test-boot", state, []string{"unit1"}, nil, nil)
 
 	ctx := context.Background()
 
@@ -115,23 +116,34 @@ func TestSystemBootedTrigger_Check(t *testing.T) {
 	}
 }
 
-func TestSystemBootedTrigger_Run(t *testing.T) {
+func TestBootTrigger_Run(t *testing.T) {
 	tempDir := t.TempDir()
-	stateFile := filepath.Join(tempDir, "boot.state")
+	stateFile := filepath.Join(tempDir, "state.yaml")
 
-	trigger := NewSystemBootedTrigger("test-boot", stateFile, []string{"unit1", "unit2"})
+	state := NewState(stateFile)
+	trigger := NewBootTrigger("test-boot", state, []string{"unit1", "unit2"}, []string{"fail-unit"}, []string{"always-unit"})
 
 	if trigger.Name() != "test-boot" {
 		t.Errorf("Expected name 'test-boot', got '%s'", trigger.Name())
 	}
 
-	if trigger.Type() != "trigger.systembooted" {
-		t.Errorf("Expected type 'trigger.systembooted', got '%s'", trigger.Type())
+	if trigger.Type() != "trigger.boot" {
+		t.Errorf("Expected type 'trigger.boot', got '%s'", trigger.Type())
 	}
 
-	triggerUnits := trigger.OnTrigger()
-	if len(triggerUnits) != 2 || triggerUnits[0] != "unit1" || triggerUnits[1] != "unit2" {
-		t.Errorf("Expected trigger units [unit1, unit2], got %v", triggerUnits)
+	onSuccess := trigger.OnSuccess()
+	if len(onSuccess) != 2 || onSuccess[0] != "unit1" || onSuccess[1] != "unit2" {
+		t.Errorf("Expected on_success units [unit1, unit2], got %v", onSuccess)
+	}
+
+	onFailure := trigger.OnFailure()
+	if len(onFailure) != 1 || onFailure[0] != "fail-unit" {
+		t.Errorf("Expected on_failure units [fail-unit], got %v", onFailure)
+	}
+
+	always := trigger.Always()
+	if len(always) != 1 || always[0] != "always-unit" {
+		t.Errorf("Expected always units [always-unit], got %v", always)
 	}
 
 	ctx := context.Background()
@@ -140,11 +152,12 @@ func TestSystemBootedTrigger_Run(t *testing.T) {
 	}
 }
 
-func TestSystemBootedTrigger_DefaultStateFile(t *testing.T) {
-	trigger := NewSystemBootedTrigger("test", "", []string{})
+func TestBootTrigger_DefaultStateFile(t *testing.T) {
+	state := NewState("")
+	trigger := NewBootTrigger("test", state, nil, nil, nil)
 
 	// Should use default state file path
-	if trigger.detector.stateFile != "/var/lib/simpleci/systembooted.state" {
-		t.Errorf("Expected default state file, got '%s'", trigger.detector.stateFile)
+	if trigger.state.filePath != "/var/lib/simpleci/state.yaml" {
+		t.Errorf("Expected default state file, got '%s'", trigger.state.filePath)
 	}
 }

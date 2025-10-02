@@ -1,0 +1,132 @@
+package simpleci
+
+import (
+	"context"
+	"fmt"
+	"time"
+)
+
+// BootTrigger is a trigger unit that fires on the first run after system boot
+type BootTrigger struct {
+	name      string
+	state     *State
+	onSuccess []string
+	onFailure []string
+	always    []string
+}
+
+// BootConfig represents the configuration for a boot trigger
+type BootConfig struct {
+	UnitConfig `yaml:",inline"`
+}
+
+// NewBootTrigger creates a new boot trigger unit
+func NewBootTrigger(name string, state *State, onSuccess, onFailure, always []string) *BootTrigger {
+	return &BootTrigger{
+		name:      name,
+		state:     state,
+		onSuccess: onSuccess,
+		onFailure: onFailure,
+		always:    always,
+	}
+}
+
+// Name returns the name of the unit
+func (s *BootTrigger) Name() string {
+	return s.name
+}
+
+// Type returns the unit type
+func (s *BootTrigger) Type() string {
+	return "trigger.boot"
+}
+
+// Check returns true if this is the first run since system boot
+func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
+	// Get current boot time
+	detector := NewBootDetector("")
+	currentBootTime, err := detector.GetBootTime()
+	if err != nil {
+		return false, fmt.Errorf("failed to get boot time: %w", err)
+	}
+
+	// Load state
+	if err := s.state.Load(); err != nil {
+		return false, fmt.Errorf("failed to load state: %w", err)
+	}
+
+	// Get last boot time from state
+	lastBootTimeStr, ok := s.state.GetString(s.name, "last_boot_time")
+	if !ok {
+		// No previous boot time, this is the first run
+		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
+		if err := s.state.Save(); err != nil {
+			return false, fmt.Errorf("failed to save state: %w", err)
+		}
+		return true, nil
+	}
+
+	// Parse last boot time
+	lastBootTime, err := parseBootTime(lastBootTimeStr)
+	if err != nil {
+		// Invalid boot time in state, treat as first run
+		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
+		if err := s.state.Save(); err != nil {
+			return false, fmt.Errorf("failed to save state: %w", err)
+		}
+		return true, nil
+	}
+
+	// Check if boot time has changed (with 10 second tolerance)
+	diff := currentBootTime.Sub(lastBootTime)
+	if diff < 0 {
+		diff = -diff
+	}
+
+	isFirstRun := diff > 10*time.Second
+	if isFirstRun {
+		// Update state with new boot time
+		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
+		if err := s.state.Save(); err != nil {
+			return false, fmt.Errorf("failed to save state: %w", err)
+		}
+	}
+
+	return isFirstRun, nil
+}
+
+// OnSuccess returns the list of units to trigger on success
+func (s *BootTrigger) OnSuccess() []string {
+	return s.onSuccess
+}
+
+// OnFailure returns the list of units to trigger on failure
+func (s *BootTrigger) OnFailure() []string {
+	return s.onFailure
+}
+
+// Always returns the list of units to trigger regardless of success/failure
+func (s *BootTrigger) Always() []string {
+	return s.always
+}
+
+// Run executes the trigger unit
+func (s *BootTrigger) Run(ctx context.Context) error {
+	triggered, err := s.Check(ctx)
+	if err != nil {
+		return err
+	}
+
+	if triggered {
+		fmt.Printf("Boot trigger '%s' activated\n", s.name)
+		// In a full implementation, this would trigger the downstream units
+		// For now, we just report the trigger
+	}
+
+	return nil
+}
+
+// parseBootTime parses a boot time string in RFC3339 format
+func parseBootTime(s string) (time.Time, error) {
+	return time.Parse("2006-01-02T15:04:05Z07:00", s)
+}

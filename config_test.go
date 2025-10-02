@@ -11,11 +11,15 @@ func TestLoadConfig(t *testing.T) {
 	configFile := filepath.Join(tempDir, "config.yaml")
 
 	configContent := `units:
-  - system_booted:
+  - boot:
       name: boot-trigger
-      trigger:
+      on_success:
         - build-unit
         - test-unit
+      on_failure:
+        - notify-admin
+      always:
+        - log-unit
 `
 
 	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
@@ -31,37 +35,47 @@ func TestLoadConfig(t *testing.T) {
 		t.Fatalf("Expected 1 unit, got %d", len(config.Units))
 	}
 
-	if config.Units[0].SystemBooted == nil {
-		t.Fatal("Expected SystemBooted config to be non-nil")
+	if config.Units[0].Boot == nil {
+		t.Fatal("Expected Boot config to be non-nil")
 	}
 
-	bootConfig := config.Units[0].SystemBooted
+	bootConfig := config.Units[0].Boot
 	if bootConfig.Name != "boot-trigger" {
 		t.Errorf("Expected name 'boot-trigger', got '%s'", bootConfig.Name)
 	}
 
-	if len(bootConfig.Trigger) != 2 {
-		t.Fatalf("Expected 2 trigger units, got %d", len(bootConfig.Trigger))
+	if len(bootConfig.OnSuccess) != 2 {
+		t.Fatalf("Expected 2 on_success units, got %d", len(bootConfig.OnSuccess))
 	}
 
-	if bootConfig.Trigger[0] != "build-unit" || bootConfig.Trigger[1] != "test-unit" {
-		t.Errorf("Unexpected trigger units: %v", bootConfig.Trigger)
+	if bootConfig.OnSuccess[0] != "build-unit" || bootConfig.OnSuccess[1] != "test-unit" {
+		t.Errorf("Unexpected on_success units: %v", bootConfig.OnSuccess)
+	}
+
+	if len(bootConfig.OnFailure) != 1 || bootConfig.OnFailure[0] != "notify-admin" {
+		t.Errorf("Unexpected on_failure units: %v", bootConfig.OnFailure)
+	}
+
+	if len(bootConfig.Always) != 1 || bootConfig.Always[0] != "log-unit" {
+		t.Errorf("Unexpected always units: %v", bootConfig.Always)
 	}
 }
 
 func TestCreateUnits(t *testing.T) {
 	tempDir := t.TempDir()
-	stateFile := filepath.Join(tempDir, "boot.state")
+	stateFile := filepath.Join(tempDir, "state.yaml")
 
 	config := &Config{
+		StateLocation: stateFile,
 		Units: []UnitConfigWrapper{
 			{
-				SystemBooted: &SystemBootedConfig{
+				Boot: &BootConfig{
 					UnitConfig: UnitConfig{
-						Name:    "boot-trigger",
-						Trigger: []string{"build", "test"},
+						Name:      "boot-trigger",
+						OnSuccess: []string{"build", "test"},
+						OnFailure: []string{"cleanup"},
+						Always:    []string{"log"},
 					},
-					StateFile: stateFile,
 				},
 			},
 		},
@@ -81,8 +95,8 @@ func TestCreateUnits(t *testing.T) {
 		t.Errorf("Expected name 'boot-trigger', got '%s'", unit.Name())
 	}
 
-	if unit.Type() != "trigger.systembooted" {
-		t.Errorf("Expected type 'trigger.systembooted', got '%s'", unit.Type())
+	if unit.Type() != "trigger.boot" {
+		t.Errorf("Expected type 'trigger.boot', got '%s'", unit.Type())
 	}
 
 	trigger, ok := unit.(TriggerUnit)
@@ -90,9 +104,19 @@ func TestCreateUnits(t *testing.T) {
 		t.Fatal("Unit is not a TriggerUnit")
 	}
 
-	triggerUnits := trigger.OnTrigger()
-	if len(triggerUnits) != 2 || triggerUnits[0] != "build" || triggerUnits[1] != "test" {
-		t.Errorf("Expected trigger units [build, test], got %v", triggerUnits)
+	onSuccess := trigger.OnSuccess()
+	if len(onSuccess) != 2 || onSuccess[0] != "build" || onSuccess[1] != "test" {
+		t.Errorf("Expected on_success units [build, test], got %v", onSuccess)
+	}
+
+	onFailure := trigger.OnFailure()
+	if len(onFailure) != 1 || onFailure[0] != "cleanup" {
+		t.Errorf("Expected on_failure units [cleanup], got %v", onFailure)
+	}
+
+	always := trigger.Always()
+	if len(always) != 1 || always[0] != "log" {
+		t.Errorf("Expected always units [log], got %v", always)
 	}
 }
 
@@ -100,9 +124,9 @@ func TestCreateUnits_MissingName(t *testing.T) {
 	config := &Config{
 		Units: []UnitConfigWrapper{
 			{
-				SystemBooted: &SystemBootedConfig{
+				Boot: &BootConfig{
 					UnitConfig: UnitConfig{
-						Trigger: []string{"build"},
+						OnSuccess: []string{"build"},
 					},
 				},
 			},

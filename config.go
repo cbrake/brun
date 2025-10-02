@@ -9,15 +9,16 @@ import (
 
 // Config represents the SimplCI configuration file
 type Config struct {
-	Units []UnitConfigWrapper `yaml:"units"`
+	StateLocation string              `yaml:"state_location,omitempty"`
+	Units         []UnitConfigWrapper `yaml:"units"`
 }
 
 // UnitConfigWrapper wraps different unit configuration types
 type UnitConfigWrapper struct {
-	SystemBooted *SystemBootedConfig `yaml:"system_booted,omitempty"`
+	Boot *BootConfig `yaml:"boot,omitempty"`
 	// Future trigger types can be added here
-	// Git          *GitConfig          `yaml:"git,omitempty"`
-	// Cron         *CronConfig         `yaml:"cron,omitempty"`
+	// Git  *GitConfig  `yaml:"git,omitempty"`
+	// Cron *CronConfig `yaml:"cron,omitempty"`
 }
 
 // LoadConfig loads a configuration file from the given path
@@ -37,19 +38,24 @@ func LoadConfig(path string) (*Config, error) {
 
 // CreateUnits creates unit instances from the configuration
 func (c *Config) CreateUnits() ([]Unit, error) {
+	// Create shared state manager
+	state := NewState(c.StateLocation)
+
 	var units []Unit
 
 	for i, wrapper := range c.Units {
-		if wrapper.SystemBooted != nil {
-			cfg := wrapper.SystemBooted
+		if wrapper.Boot != nil {
+			cfg := wrapper.Boot
 			if cfg.Name == "" {
 				return nil, fmt.Errorf("unit %d: name is required", i)
 			}
 
-			unit := NewSystemBootedTrigger(
+			unit := NewBootTrigger(
 				cfg.Name,
-				cfg.StateFile,
-				cfg.Trigger,
+				state,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
 			)
 			units = append(units, unit)
 		}

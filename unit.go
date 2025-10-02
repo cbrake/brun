@@ -21,13 +21,21 @@ type TriggerUnit interface {
 	// Check returns true if the trigger condition is met
 	Check(ctx context.Context) (bool, error)
 
-	// OnTrigger returns the names of units to trigger when condition is met
-	OnTrigger() []string
+	// OnSuccess returns the names of units to trigger on success
+	OnSuccess() []string
+
+	// OnFailure returns the names of units to trigger on failure
+	OnFailure() []string
+
+	// Always returns the names of units to trigger regardless of success/failure
+	Always() []string
 }
 
 // UnitConfig represents the base configuration for all units
 type UnitConfig struct {
-	Name    string   `yaml:"name"`
-	Type    string   `yaml:"type"`
-	Trigger []string `yaml:"trigger,omitempty"`
+	Name      string   `yaml:"name"`
+	Type      string   `yaml:"type"`
+	OnSuccess []string `yaml:"on_success,omitempty"`
+	OnFailure []string `yaml:"on_failure,omitempty"`
+	Always    []string `yaml:"always,omitempty"`
 }

@@ -1,7 +1,12 @@
+state_location: /tmp/simpleci-state.yaml
+
 units:
-  - system_booted:
+  - boot:
       name: boot-trigger
-      state_file: /tmp/simpleci-boot.state
-      trigger:
+      on_success:
         - build-unit
         - test-unit
+      on_failure:
+        - notify-admin
+      always:
+        - log-unit
