@@ -42,6 +42,13 @@ func Install() error {
 func installSystemService(execPath string) error {
 	fmt.Println("Installing system-wide systemd service...")
 
+	configPath := "/etc/simpleci/config.yaml"
+
+	// Create default config if it doesn't exist
+	if err := createDefaultConfigIfNeeded(configPath); err != nil {
+		return fmt.Errorf("failed to create config: %w", err)
+	}
+
 	serviceContent := generateSystemServiceFile(execPath)
 
 	// Write service file
@@ -72,6 +79,13 @@ func installUserService(execPath string) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	configPath := filepath.Join(homeDir, ".config", "simpleci", "config.yaml")
+
+	// Create default config if it doesn't exist
+	if err := createDefaultConfigIfNeeded(configPath); err != nil {
+		return fmt.Errorf("failed to create config: %w", err)
 	}
 
 	serviceDir := filepath.Join(homeDir, userServiceDir)
@@ -113,7 +127,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%s /etc/simpleci/config.yaml
+ExecStart=%s start /etc/simpleci/config.yaml
 StandardOutput=journal
 StandardError=journal
 Restart=no
@@ -134,7 +148,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%s %s
+ExecStart=%s start %s
 StandardOutput=journal
 StandardError=journal
 Restart=no
@@ -142,4 +156,46 @@ Restart=no
 [Install]
 WantedBy=default.target
 `, execPath, configPath)
+}
+
+// createDefaultConfigIfNeeded creates a default config file if one doesn't exist
+func createDefaultConfigIfNeeded(configPath string) error {
+	// Check if config already exists
+	if _, err := os.Stat(configPath); err == nil {
+		fmt.Printf("Config file already exists at %s\n", configPath)
+		return nil
+	}
+
+	// Create config directory
+	configDir := filepath.Dir(configPath)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Default config content
+	defaultConfig := `# Simple CI Configuration File
+# See https://github.com/cbrake/simpleci for documentation
+
+state_location: /var/lib/simpleci/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      on_success:
+        - build-unit
+        - test-unit
+
+  # Add your units here
+  # - reboot:
+  #     name: reboot-system
+  #     delay: 5
+`
+
+	// Write default config
+	if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	fmt.Printf("Created default config file at %s\n", configPath)
+	return nil
 }

@@ -15,6 +15,8 @@ To install, download the latest release and then run `simpleci --install`.
 If this is run as root, it installs a systemd service that runs as root,
 otherwise as the user that runs the install.
 
+If a config file does not exist, one is created.
+
 ## Running
 
 Build the project:
@@ -163,7 +165,9 @@ A Cron trigger unit is configured using the standard Unit cron format.
 
 ### Reboot
 
-The reboot unit logs and reboots the system. This is typically used in reboot cycle testing where the boot trigger can count boot cycles and trigger test sequences.
+The reboot unit logs and reboots the system. This is typically used in reboot
+cycle testing where the boot trigger can count boot cycles and trigger test
+sequences.
 
 **Configuration example:**
 
@@ -171,11 +175,13 @@ The reboot unit logs and reboots the system. This is typically used in reboot cy
 units:
   - reboot:
       name: reboot-system
-      delay: 5  # optional delay in seconds before reboot (default: 0)
+      delay: 5 # optional delay in seconds before reboot (default: 0)
 ```
 
 **Fields:**
 
 - **name** (required): Unique identifier for the reboot unit
-- **delay** (optional): Number of seconds to wait before executing reboot (default: 0 for immediate reboot)
-- **on_success**, **on_failure**, **always** (optional): Standard trigger fields (though typically not used since reboot terminates execution)
+- **delay** (optional): Number of seconds to wait before executing reboot
+  (default: 0 for immediate reboot)
+- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
+  (though typically not used since reboot terminates execution)

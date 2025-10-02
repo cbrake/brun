@@ -11,7 +11,7 @@ import (
 // State represents the common state file for all units
 type State struct {
 	filePath string
-	data     map[string]interface{}
+	data     map[string]any
 }
 
 // NewState creates a new state manager with the given file path
@@ -21,7 +21,7 @@ func NewState(filePath string) *State {
 	}
 	return &State{
 		filePath: filePath,
-		data:     make(map[string]interface{}),
+		data:     make(map[string]any),
 	}
 }
 
@@ -31,7 +31,7 @@ func (s *State) Load() error {
 	if err != nil {
 		if os.IsNotExist(err) {
 			// State file doesn't exist yet, start with empty state
-			s.data = make(map[string]interface{})
+			s.data = make(map[string]any)
 			return nil
 		}
 		return fmt.Errorf("failed to read state file: %w", err)
@@ -67,13 +67,13 @@ func (s *State) Save() error {
 }
 
 // Get retrieves a value from state for the given unit name and key
-func (s *State) Get(unitName, key string) (interface{}, bool) {
+func (s *State) Get(unitName, key string) (any, bool) {
 	unitData, ok := s.data[unitName]
 	if !ok {
 		return nil, false
 	}
 
-	unitMap, ok := unitData.(map[string]interface{})
+	unitMap, ok := unitData.(map[string]any)
 	if !ok {
 		return nil, false
 	}
@@ -82,21 +82,24 @@ func (s *State) Get(unitName, key string) (interface{}, bool) {
 	return value, ok
 }
 
-// Set stores a value in state for the given unit name and key
-func (s *State) Set(unitName, key string, value interface{}) {
+// Set stores a value in state for the given unit name and key and automatically saves
+func (s *State) Set(unitName, key string, value any) error {
 	unitData, ok := s.data[unitName]
 	if !ok {
-		unitData = make(map[string]interface{})
+		unitData = make(map[string]any)
 		s.data[unitName] = unitData
 	}
 
-	unitMap, ok := unitData.(map[string]interface{})
+	unitMap, ok := unitData.(map[string]any)
 	if !ok {
-		unitMap = make(map[string]interface{})
+		unitMap = make(map[string]any)
 		s.data[unitName] = unitMap
 	}
 
 	unitMap[key] = value
+
+	// Automatically save after setting
+	return s.Save()
 }
 
 // GetString retrieves a string value from state
@@ -110,7 +113,7 @@ func (s *State) GetString(unitName, key string) (string, bool) {
 	return str, ok
 }
 
-// SetString stores a string value in state
-func (s *State) SetString(unitName, key, value string) {
-	s.Set(unitName, key, value)
+// SetString stores a string value in state and automatically saves
+func (s *State) SetString(unitName, key, value string) error {
+	return s.Set(unitName, key, value)
 }

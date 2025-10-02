@@ -59,10 +59,11 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 	lastBootTimeStr, ok := s.state.GetString(s.name, "last_boot_time")
 	if !ok {
 		// No previous boot time, this is the first run
-		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
-		s.state.Set(s.name, "boot_count", 1)
-		if err := s.state.Save(); err != nil {
-			return false, fmt.Errorf("failed to save state: %w", err)
+		if err := s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00")); err != nil {
+			return false, fmt.Errorf("failed to save boot time: %w", err)
+		}
+		if err := s.state.Set(s.name, "boot_count", 1); err != nil {
+			return false, fmt.Errorf("failed to save boot count: %w", err)
 		}
 		return true, nil
 	}
@@ -71,10 +72,11 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 	lastBootTime, err := parseBootTime(lastBootTimeStr)
 	if err != nil {
 		// Invalid boot time in state, treat as first run
-		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
-		s.state.Set(s.name, "boot_count", 1)
-		if err := s.state.Save(); err != nil {
-			return false, fmt.Errorf("failed to save state: %w", err)
+		if err := s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00")); err != nil {
+			return false, fmt.Errorf("failed to save boot time: %w", err)
+		}
+		if err := s.state.Set(s.name, "boot_count", 1); err != nil {
+			return false, fmt.Errorf("failed to save boot count: %w", err)
 		}
 		return true, nil
 	}
@@ -96,10 +98,11 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 		}
 
 		// Update state with new boot time and incremented boot count
-		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
-		s.state.Set(s.name, "boot_count", bootCount)
-		if err := s.state.Save(); err != nil {
-			return false, fmt.Errorf("failed to save state: %w", err)
+		if err := s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00")); err != nil {
+			return false, fmt.Errorf("failed to save boot time: %w", err)
+		}
+		if err := s.state.Set(s.name, "boot_count", bootCount); err != nil {
+			return false, fmt.Errorf("failed to save boot count: %w", err)
 		}
 	}
 
