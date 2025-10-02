@@ -1,4 +1,4 @@
-package simpleci
+package metalci
 
 import "context"
 

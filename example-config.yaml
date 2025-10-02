@@ -1,5 +1,5 @@
 config:
-  state_location: /tmp/simpleci-state.yaml
+  state_location: /tmp/metalci-state.yaml
 
 units:
   - start:
@@ -20,7 +20,7 @@ units:
       name: build-unit
       script: |
         echo "Building project..."
-        go build -o simpleci ./cmd/simpleci
+        go build -o metalci ./cmd/metalci
         echo "Build complete"
       on_success:
         - test-unit

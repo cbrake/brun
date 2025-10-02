@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Simple CI is a tool for running automated builds and tests with a focus on low-level hardware testing. It does not require containers and is designed to run natively on systems. The project uses a YAML config format inspired by Gitlab CI/CD, Drone, and Ansible.
+MetalCI is a tool for running automated builds and tests with a focus on low-level hardware testing. It does not require containers and is designed to run natively on systems. The project uses a YAML config format inspired by Gitlab CI/CD, Drone, and Ansible.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ Simple CI is a tool for running automated builds and tests with a focus on low-l
 
 **bootdetect.go**: Contains the `BootDetector` type that detects system boot time by reading `/proc/uptime` and tracks whether this is the first run since boot using a state file. Uses a 10-second tolerance when comparing boot times to handle calculation variations.
 
-**systembooted.go**: Implements the `SystemBootedTrigger` which uses `BootDetector` to fire once per boot cycle. State files default to `/var/lib/simpleci/systembooted.state` but can be customized.
+**systembooted.go**: Implements the `SystemBootedTrigger` which uses `BootDetector` to fire once per boot cycle. State files default to `/var/lib/metalci/systembooted.state` but can be customized.
 
 **config.go**: Handles YAML configuration parsing and unit instantiation. The config format uses a wrapper pattern to support multiple unit types. The `state_location` field is required in all configuration files.
 
@@ -34,7 +34,7 @@ Simple CI is a tool for running automated builds and tests with a focus on low-l
 ### Language and Dependencies
 
 - Go 1.25.1
-- Module: `github.com/cbrake/simpleci`
+- Module: `github.com/cbrake/metalci`
 
 ### Code Style
 
@@ -49,12 +49,12 @@ The project uses Prettier with the following settings:
 
 Build the project:
 ```bash
-go build -o simpleci ./cmd/simpleci
+go build -o metalci ./cmd/metalci
 ```
 
 Run with a config file:
 ```bash
-./simpleci example-config.yaml
+./metalci example-config.yaml
 ```
 
 Run tests:

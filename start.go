@@ -1,4 +1,4 @@
-package simpleci
+package metalci
 
 import (
 	"context"
@@ -10,7 +10,7 @@ type StartConfig struct {
 	UnitConfig `yaml:",inline"`
 }
 
-// StartTrigger is a trigger that always fires when simpleci starts
+// StartTrigger is a trigger that always fires when metalci starts
 type StartTrigger struct {
 	name      string
 	onSuccess []string

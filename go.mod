@@ -1,4 +1,4 @@
-module github.com/cbrake/simpleci
+module github.com/cbrake/metalci
 
 go 1.24
 
