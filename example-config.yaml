@@ -24,6 +24,7 @@ units:
         echo "Build complete"
       on_success:
         - test-unit
+        - test-fail
       on_failure:
         - notify-admin
 
@@ -35,3 +36,17 @@ units:
         echo "Tests complete"
       on_failure:
         - notify-admin
+
+  - run:
+      name: test-fail
+      script: |
+        echo "fail script"
+        exit -1
+      on_failure:
+        - log-error
+
+  - run:
+      name: log-error
+      script: |
+        echo "log error run"
+
