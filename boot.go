@@ -60,6 +60,7 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 	if !ok {
 		// No previous boot time, this is the first run
 		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
+		s.state.Set(s.name, "boot_count", 1)
 		if err := s.state.Save(); err != nil {
 			return false, fmt.Errorf("failed to save state: %w", err)
 		}
@@ -71,6 +72,7 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 	if err != nil {
 		// Invalid boot time in state, treat as first run
 		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
+		s.state.Set(s.name, "boot_count", 1)
 		if err := s.state.Save(); err != nil {
 			return false, fmt.Errorf("failed to save state: %w", err)
 		}
@@ -85,8 +87,17 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 
 	isFirstRun := diff > 10*time.Second
 	if isFirstRun {
-		// Update state with new boot time
+		// Get current boot count
+		bootCount := 1
+		if countVal, ok := s.state.Get(s.name, "boot_count"); ok {
+			if count, ok := countVal.(int); ok {
+				bootCount = count + 1
+			}
+		}
+
+		// Update state with new boot time and incremented boot count
 		s.state.SetString(s.name, "last_boot_time", currentBootTime.Format("2006-01-02T15:04:05Z07:00"))
+		s.state.Set(s.name, "boot_count", bootCount)
 		if err := s.state.Save(); err != nil {
 			return false, fmt.Errorf("failed to save state: %w", err)
 		}
@@ -118,7 +129,15 @@ func (s *BootTrigger) Run(ctx context.Context) error {
 	}
 
 	if triggered {
-		fmt.Printf("Boot trigger '%s' activated\n", s.name)
+		// Get boot count from state
+		bootCount := 1
+		if countVal, ok := s.state.Get(s.name, "boot_count"); ok {
+			if count, ok := countVal.(int); ok {
+				bootCount = count
+			}
+		}
+
+		fmt.Printf("Boot trigger '%s' activated (boot count: %d)\n", s.name, bootCount)
 		// In a full implementation, this would trigger the downstream units
 		// For now, we just report the trigger
 	}
