@@ -8,6 +8,13 @@ Simple CI is a tool to run automated builds/tests. Features/goals:
 - designed first to run native
 - can run tests/builds on a local workstation
 
+## Install
+
+To install, download the latest release and then run `simpleci --install`.
+
+If this is run as root, it installs a systemd service that runs as root,
+otherwise as the user that runs the install.
+
 ## Running
 
 Build the project:
@@ -18,9 +25,8 @@ go build -o simpleci ./cmd/simpleci
 
 Run Simple CI with a configuration file:
 
-```bash
-./simpleci config.yaml
-```
+- `simpleci start config.yaml`: (start the program)
+- `simpleci install`: (install and setup the program)
 
 Simple CI can be configured for a one-time run (default), or a long running
 process that continually looks for triggers.

@@ -10,11 +10,47 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <config-file>\n", os.Args[0])
+		printUsage()
 		os.Exit(1)
 	}
 
-	configFile := os.Args[1]
+	command := os.Args[1]
+	args := os.Args[2:]
+
+	switch command {
+	case "install":
+		cmdInstall(args)
+	case "start":
+		cmdStart(args)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n\n", command)
+		printUsage()
+		os.Exit(1)
+	}
+}
+
+func printUsage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args]\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Commands:\n")
+	fmt.Fprintf(os.Stderr, "  start <config-file>  Start simpleci with the given config file\n")
+	fmt.Fprintf(os.Stderr, "  install              Install simpleci as a systemd service\n")
+}
+
+func cmdInstall(args []string) {
+	if err := simpleci.Install(); err != nil {
+		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Installation completed successfully")
+}
+
+func cmdStart(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintf(os.Stderr, "Usage: %s start <config-file>\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	configFile := args[0]
 
 	// Load configuration
 	config, err := simpleci.LoadConfig(configFile)
