@@ -79,9 +79,9 @@ location can be configured via command-line arguments or environment variables.
 Units store different types of state information in the YAML file:
 
 - **Boot trigger**: Last boot time (RFC3339 timestamp)
+- **Boot trigger**: boot count
 - **Git trigger**: Last processed commit hash
 - **Cron trigger**: Last execution time
-- **Reboot cycle test**: Test iteration count and status
 
 **State File Format:**
 
@@ -161,6 +161,21 @@ A Git trigger is generated when a Git update is detected in a local workspace.
 
 A Cron trigger unit is configured using the standard Unit cron format.
 
-## Reboot
+### Reboot
 
-The reboot unit logs and reboots the unit.
+The reboot unit logs and reboots the system. This is typically used in reboot cycle testing where the boot trigger can count boot cycles and trigger test sequences.
+
+**Configuration example:**
+
+```yaml
+units:
+  - reboot:
+      name: reboot-system
+      delay: 5  # optional delay in seconds before reboot (default: 0)
+```
+
+**Fields:**
+
+- **name** (required): Unique identifier for the reboot unit
+- **delay** (optional): Number of seconds to wait before executing reboot (default: 0 for immediate reboot)
+- **on_success**, **on_failure**, **always** (optional): Standard trigger fields (though typically not used since reboot terminates execution)

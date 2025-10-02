@@ -15,7 +15,8 @@ type Config struct {
 
 // UnitConfigWrapper wraps different unit configuration types
 type UnitConfigWrapper struct {
-	Boot *BootConfig `yaml:"boot,omitempty"`
+	Boot   *BootConfig   `yaml:"boot,omitempty"`
+	Reboot *RebootConfig `yaml:"reboot,omitempty"`
 	// Future trigger types can be added here
 	// Git  *GitConfig  `yaml:"git,omitempty"`
 	// Cron *CronConfig `yaml:"cron,omitempty"`
@@ -53,6 +54,22 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 			unit := NewBootTrigger(
 				cfg.Name,
 				state,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.Reboot != nil {
+			cfg := wrapper.Reboot
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+
+			unit := NewRebootUnit(
+				cfg.Name,
+				cfg.Delay,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,
