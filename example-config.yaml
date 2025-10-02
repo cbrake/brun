@@ -45,8 +45,7 @@ units:
       on_failure:
         - log-error
 
-  - run:
+  - log:
       name: log-error
-      script: |
-        echo "log error run"
+      file: error.log
 

@@ -36,7 +36,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "  install              Install simpleci as a systemd service\n")
 }
 
-func cmdInstall(args []string) {
+func cmdInstall(_ []string) {
 	if err := simpleci.Install(); err != nil {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)
@@ -68,14 +68,13 @@ func cmdRun(args []string) {
 
 	fmt.Printf("Loaded %d unit(s)\n", len(units))
 
-	// Run all trigger units
+	// Create orchestrator and run units
 	ctx := context.Background()
-	for _, unit := range units {
-		fmt.Printf("Running unit '%s' (type: %s)\n", unit.Name(), unit.Type())
-		if err := unit.Run(ctx); err != nil {
-			fmt.Fprintf(os.Stderr, "Error running unit '%s': %v\n", unit.Name(), err)
-			os.Exit(1)
-		}
+	orchestrator := simpleci.NewOrchestrator(units)
+
+	if err := orchestrator.Run(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "Error running orchestrator: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("All units completed successfully")

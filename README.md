@@ -252,6 +252,55 @@ units:
 - Non-zero exit codes are considered failures and trigger `on_failure` units
 - Both stdout and stderr are logged
 
+### Log
+
+The Log unit writes log entries to a file. This is useful for recording events,
+errors, or other information during pipeline execution. The log file is created
+if it doesn't exist, and entries are appended with timestamps.
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/simpleci/state.yaml
+
+units:
+  - start:
+      name: start-trigger
+      on_success:
+        - build
+      always:
+        - log-run
+
+  - run:
+      name: build
+      script: |
+        go build -o simpleci ./cmd/simpleci
+      on_failure:
+        - log-error
+
+  - log:
+      name: log-run
+      file: /var/log/simpleci/pipeline.log
+
+  - log:
+      name: log-error
+      file: /var/log/simpleci/errors.log
+```
+
+**Fields:**
+
+- **name** (required): Unique identifier for the log unit
+- **file** (required): Path to the log file where entries will be written
+- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
+
+**Behavior:**
+
+- Creates the log file and parent directories if they don't exist
+- Appends log entries with timestamps
+- File permissions are set to 0644
+- Directory permissions are set to 0755
+
 ### Git
 
 A Git trigger is generated when a Git update is detected in a local workspace.
