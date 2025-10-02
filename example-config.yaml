@@ -2,12 +2,36 @@ config:
   state_location: /tmp/simpleci-state.yaml
 
 units:
+  - start:
+      name: start-trigger
+      on_success:
+        - build-unit
+
   - boot:
       name: boot-trigger
       on_success:
         - build-unit
-        - test-unit
       on_failure:
         - notify-admin
       always:
         - log-unit
+
+  - run:
+      name: build-unit
+      script: |
+        echo "Building project..."
+        go build -o simpleci ./cmd/simpleci
+        echo "Build complete"
+      on_success:
+        - test-unit
+      on_failure:
+        - notify-admin
+
+  - run:
+      name: test-unit
+      script: |
+        echo "Running tests..."
+        go test -v
+        echo "Tests complete"
+      on_failure:
+        - notify-admin

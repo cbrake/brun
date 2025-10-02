@@ -132,6 +132,37 @@ All units share the following common fields:
 - **always** (optional): An array of unit names to trigger regardless of whether
   this unit succeeds or fails. These units run after success/failure triggers.
 
+### Start
+
+The Start trigger always fires when simpleci runs. This can be used to trigger
+other units every time the program executes, regardless of boot state or other
+conditions.
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/simpleci/state.yaml
+
+units:
+  - start:
+      name: start-trigger
+      on_success:
+        - build-unit
+        - test-unit
+```
+
+**Fields:**
+
+- **name** (required): Unique identifier for the start trigger
+- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
+
+**Behavior:**
+
+- Always triggers on every simpleci run
+- Does not maintain any state
+- Useful for unconditional execution pipelines
+
 ### Boot
 
 The boot unit triggers if this is the first time the program has been run since
@@ -166,6 +197,60 @@ When the boot trigger fires successfully, it will trigger the units listed in
 
 The boot time is automatically stored in the common state file under the unit's
 name.
+
+### Run
+
+The Run unit executes arbitrary shell commands or scripts. This is the primary
+execution unit for running builds, tests, or any other commands. The exit code
+determines success or failure, which then triggers the appropriate units.
+
+Multiple Run units can be defined in a configuration file to create build and
+test pipelines.
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/simpleci/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      on_success:
+        - build
+
+  - run:
+      name: build
+      directory: /home/user/project
+      script: |
+        go build -o simpleci ./cmd/simpleci
+        go test -v
+      on_success:
+        - deploy
+      on_failure:
+        - notify-failure
+
+  - run:
+      name: deploy
+      script: |
+        ./deploy.sh
+```
+
+**Fields:**
+
+- **name** (required): Unique identifier for the run unit
+- **script** (required): Shell commands to execute. Can be a single command or a
+  multi-line script
+- **directory** (optional): Working directory where the script will be executed.
+  Defaults to the directory where simpleci was invoked
+- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
+
+**Behavior:**
+
+- The script is executed using the system shell
+- Exit code 0 is considered success and triggers `on_success` units
+- Non-zero exit codes are considered failures and trigger `on_failure` units
+- Both stdout and stderr are logged
 
 ### Git
 
