@@ -108,49 +108,14 @@ All units share the following common fields:
 
 - **name** (required): A unique identifier for the unit. This name is used to
   reference the unit when triggering it from other units.
-
-#### Trigger Fields
-
-Units can trigger other units based on their execution result. The following
-trigger fields are available:
-
 - **on_success** (optional): An array of unit names to trigger when this unit
   completes successfully.
-
 - **on_failure** (optional): An array of unit names to trigger when this unit
   fails.
-
 - **always** (optional): An array of unit names to trigger regardless of whether
   this unit succeeds or fails. These units run after success/failure triggers.
 
-**Example:**
-
-```yaml
-units:
-  - boot:
-      name: boot-trigger
-      on_success:
-        - build-unit
-        - test-unit
-      on_failure:
-        - notify-admin
-        - cleanup-unit
-      always:
-        - log-unit
-```
-
-In this example:
-
-- When `boot-trigger` succeeds, it triggers `build-unit` and `test-unit`
-- When `boot-trigger` fails, it triggers `notify-admin` and `cleanup-unit`
-- The `log-unit` always runs regardless of success or failure
-
-### Trigger Units
-
-Trigger units watch for various conditions and then trigger when the condition
-is met. They are typically used to start other units.
-
-#### Boot
+### Boot
 
 The boot unit triggers if this is the first time the program has been run since
 the system booted. The boot unit stores the last boot time in the common state
@@ -182,22 +147,14 @@ When the boot trigger fires successfully, it will trigger the units listed in
 The boot time is automatically stored in the common state file under the unit's
 name.
 
-#### Git updates
+### Git
 
 A Git trigger is generated when a Git update is detected in a local workspace.
 
-#### Cron
+### Cron
 
 A Cron trigger unit is configured using the standard Unit cron format.
 
-## Reboot Cycle Test
+## Reboot
 
-A reboot cycle test can be enabled by adding the following to your config file:
-
-TODO: create YAML format for this.
-
-The reboot cycle test is typically triggered by a boot unit.
-
-The reboot cycle counts boot cycles and executes a series of tests on each boot.
-If any of the tests fail, the error is logged in a log file, and the test
-continues.
+The reboot unit logs and reboots the unit.
