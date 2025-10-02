@@ -15,10 +15,8 @@ type State struct {
 }
 
 // NewState creates a new state manager with the given file path
+// filePath must not be empty
 func NewState(filePath string) *State {
-	if filePath == "" {
-		filePath = "/var/lib/simpleci/state.yaml"
-	}
 	return &State{
 		filePath: filePath,
 		data:     make(map[string]any),

@@ -27,7 +27,7 @@ Simple CI is a tool for running automated builds and tests with a focus on low-l
 
 **systembooted.go**: Implements the `SystemBootedTrigger` which uses `BootDetector` to fire once per boot cycle. State files default to `/var/lib/simpleci/systembooted.state` but can be customized.
 
-**config.go**: Handles YAML configuration parsing and unit instantiation. The config format uses a wrapper pattern to support multiple unit types.
+**config.go**: Handles YAML configuration parsing and unit instantiation. The config format uses a wrapper pattern to support multiple unit types. The `state_location` field is required in all configuration files.
 
 ## Development
 

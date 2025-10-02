@@ -152,12 +152,13 @@ func TestBootTrigger_Run(t *testing.T) {
 	}
 }
 
-func TestBootTrigger_DefaultStateFile(t *testing.T) {
-	state := NewState("")
+func TestBootTrigger_StateFilePath(t *testing.T) {
+	stateFile := "/tmp/test-state.yaml"
+	state := NewState(stateFile)
 	trigger := NewBootTrigger("test", state, nil, nil, nil)
 
-	// Should use default state file path
-	if trigger.state.filePath != "/var/lib/simpleci/state.yaml" {
-		t.Errorf("Expected default state file, got '%s'", trigger.state.filePath)
+	// Should use the provided state file path
+	if trigger.state.filePath != stateFile {
+		t.Errorf("Expected state file '%s', got '%s'", stateFile, trigger.state.filePath)
 	}
 }

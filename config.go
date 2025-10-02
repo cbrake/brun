@@ -7,10 +7,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfigBlock represents the config section of the configuration file
+type ConfigBlock struct {
+	StateLocation string `yaml:"state_location"`
+}
+
 // Config represents the SimplCI configuration file
 type Config struct {
-	StateLocation string              `yaml:"state_location,omitempty"`
-	Units         []UnitConfigWrapper `yaml:"units"`
+	ConfigBlock ConfigBlock         `yaml:"config"`
+	Units       []UnitConfigWrapper `yaml:"units"`
 }
 
 // UnitConfigWrapper wraps different unit configuration types
@@ -39,8 +44,13 @@ func LoadConfig(path string) (*Config, error) {
 
 // CreateUnits creates unit instances from the configuration
 func (c *Config) CreateUnits() ([]Unit, error) {
+	// Validate required fields
+	if c.ConfigBlock.StateLocation == "" {
+		return nil, fmt.Errorf("config.state_location is required in config file")
+	}
+
 	// Create shared state manager
-	state := NewState(c.StateLocation)
+	state := NewState(c.ConfigBlock.StateLocation)
 
 	var units []Unit
 

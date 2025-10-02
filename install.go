@@ -172,11 +172,19 @@ func createDefaultConfigIfNeeded(configPath string) error {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Default config content
-	defaultConfig := `# Simple CI Configuration File
+	// Default config content - use different state location for root vs user
+	stateLocation := "/var/lib/simpleci/state.yaml"
+	if configPath != "/etc/simpleci/config.yaml" {
+		// User install
+		homeDir, _ := os.UserHomeDir()
+		stateLocation = filepath.Join(homeDir, ".config", "simpleci", "state.yaml")
+	}
+
+	defaultConfig := fmt.Sprintf(`# Simple CI Configuration File
 # See https://github.com/cbrake/simpleci for documentation
 
-state_location: /var/lib/simpleci/state.yaml
+config:
+  state_location: %s
 
 units:
   - boot:
@@ -189,7 +197,7 @@ units:
   # - reboot:
   #     name: reboot-system
   #     delay: 5
-`
+`, stateLocation)
 
 	// Write default config
 	if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {

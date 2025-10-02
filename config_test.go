@@ -1,6 +1,7 @@
 package simpleci
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,8 +10,12 @@ import (
 func TestLoadConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	configFile := filepath.Join(tempDir, "config.yaml")
+	stateFile := filepath.Join(tempDir, "state.yaml")
 
-	configContent := `units:
+	configContent := fmt.Sprintf(`config:
+  state_location: %s
+
+units:
   - boot:
       name: boot-trigger
       on_success:
@@ -20,7 +25,7 @@ func TestLoadConfig(t *testing.T) {
         - notify-admin
       always:
         - log-unit
-`
+`, stateFile)
 
 	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
 		t.Fatalf("Failed to write test config: %v", err)
@@ -66,7 +71,9 @@ func TestCreateUnits(t *testing.T) {
 	stateFile := filepath.Join(tempDir, "state.yaml")
 
 	config := &Config{
-		StateLocation: stateFile,
+		ConfigBlock: ConfigBlock{
+			StateLocation: stateFile,
+		},
 		Units: []UnitConfigWrapper{
 			{
 				Boot: &BootConfig{
@@ -157,5 +164,25 @@ func TestLoadConfig_InvalidYAML(t *testing.T) {
 	_, err := LoadConfig(configFile)
 	if err == nil {
 		t.Error("Expected error for invalid YAML")
+	}
+}
+
+func TestCreateUnits_MissingStateLocation(t *testing.T) {
+	config := &Config{
+		Units: []UnitConfigWrapper{
+			{
+				Boot: &BootConfig{
+					UnitConfig: UnitConfig{
+						Name:      "boot-trigger",
+						OnSuccess: []string{"build"},
+					},
+				},
+			},
+		},
+	}
+
+	_, err := config.CreateUnits()
+	if err == nil {
+		t.Error("Expected error for missing state_location")
 	}
 }

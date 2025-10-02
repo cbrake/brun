@@ -71,10 +71,7 @@ it easy to:
 - Clear all state with a single file deletion
 - Inspect and debug state using standard YAML tools
 
-**State File Location:**
-
-By default, the state file is located at `/var/lib/simpleci/state.yaml`. This
-location can be configured via command-line arguments or environment variables.
+The state file location must be set in the Simple CI YAML file.
 
 **State Data:**
 
@@ -103,10 +100,22 @@ allows us to start/sequence operations and create build/test pipelines.
 
 ### Config
 
-The Simple CI file consists of an optional config section with the following
+The Simple CI file consists of a required `config` section with the following
 fields:
 
-- state_location (optional, defaults to `/var/lib/simpleci/state.yaml`)
+```yaml
+config:
+  state_location: /var/lib/simpleci/state.yaml
+```
+
+**Fields:**
+
+- **state_location** (required): Path to the state file where units store their
+  state between runs.
+  - Defaults to `/var/lib/simpleci/state.yaml` for root installs
+  - Defaults to `~/.config/simpleci/state.yaml` for user installs
+
+The config file also contains a `units` section as described below.
 
 ## Units
 
@@ -141,6 +150,9 @@ The boot trigger detects boot events by:
 **Configuration example:**
 
 ```yaml
+config:
+  state_location: /var/lib/simpleci/state.yaml
+
 units:
   - boot:
       name: boot-trigger
@@ -172,6 +184,9 @@ sequences.
 **Configuration example:**
 
 ```yaml
+config:
+  state_location: /var/lib/simpleci/state.yaml
+
 units:
   - reboot:
       name: reboot-system

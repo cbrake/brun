@@ -1,4 +1,5 @@
-state_location: /tmp/simpleci-state.yaml
+config:
+  state_location: /tmp/simpleci-state.yaml
 
 units:
   - boot:
