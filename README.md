@@ -1,5 +1,20 @@
 # BRun
 
+```
+    ╔═══════════════════════════════════╗
+    ║                                   ║
+    ║   ▄▄▄▄                            ║
+    ║   █   █  ██▄▄  █  █  █▄▄          ║
+    ║   ████   █  █  █  █  █  █         ║
+    ║   █   █  █  █  █  █  █  █         ║
+    ║   ████   ██▀   ████  █  █         ║
+    ║                                   ║
+    ║   ∿∿∿∿ Build → Test → Deploy ∿∿∿∿ ║
+    ║  ∿∿∿∿∿∿  Trigger  →  Run  ∿∿∿∿∿∿  ║
+    ║                                   ║
+    ╚═══════════════════════════════════╝
+```
+
 BRun is a tool to run automated builds/tests with a focus on Linux bare-machine
 testing. Features/goals:
 
