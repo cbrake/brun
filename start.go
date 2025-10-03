@@ -10,7 +10,7 @@ type StartConfig struct {
 	UnitConfig `yaml:",inline"`
 }
 
-// StartTrigger is a trigger that always fires when metalci starts
+// StartTrigger is a trigger that always fires when brun starts
 type StartTrigger struct {
 	name      string
 	onSuccess []string

@@ -49,7 +49,7 @@ The project uses Prettier with the following settings:
 
 Build the project:
 ```bash
-go build -o brun ./cmd/metalci
+go build -o brun ./cmd/brun
 ```
 
 Run with a config file:

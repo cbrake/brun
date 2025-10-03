@@ -20,7 +20,7 @@ units:
       name: build-unit
       script: |
         echo "Building project..."
-        go build -o brun ./cmd/metalci
+        go build -o brun ./cmd/brun
         echo "Build complete"
       on_success:
         - test-unit

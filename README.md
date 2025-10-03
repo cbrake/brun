@@ -225,7 +225,7 @@ units:
       name: build
       directory: /home/user/project
       script: |
-        go build -o brun ./cmd/metalci
+        go build -o brun ./cmd/brun
         go test -v
       on_success:
         - deploy
@@ -277,7 +277,7 @@ units:
   - run:
       name: build
       script: |
-        go build -o brun ./cmd/metalci
+        go build -o brun ./cmd/brun
       on_failure:
         - log-error
 
