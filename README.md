@@ -182,8 +182,8 @@ BRun runs for the first time.
 
 ## File format
 
-YAML is used for the BRun file format and leverages the best of Gitlab CI/CD, Drone,
-Ansible, and other popular systems.
+YAML is used for the BRun file format and leverages the best of Gitlab CI/CD,
+Drone, Ansible, and other popular systems.
 
 The system is composed of units. Each unit can trigger additional units. This
 allows us to start/sequence operations and create build/test pipelines.
@@ -240,11 +240,6 @@ units:
         - build-unit
         - test-unit
 ```
-
-**Fields:**
-
-- **name** (required): Unique identifier for the start trigger
-- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
 
 **Behavior:**
 
@@ -327,12 +322,10 @@ units:
 
 **Fields:**
 
-- **name** (required): Unique identifier for the run unit
 - **script** (required): Shell commands to execute. Can be a single command or a
   multi-line script
 - **directory** (optional): Working directory where the script will be executed.
   Defaults to the directory where brun was invoked
-- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
 
 **Behavior:**
 
@@ -379,9 +372,7 @@ units:
 
 **Fields:**
 
-- **name** (required): Unique identifier for the log unit
 - **file** (required): Path to the log file where entries will be written
-- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
 
 **Behavior:**
 
@@ -422,8 +413,5 @@ units:
 
 **Fields:**
 
-- **name** (required): Unique identifier for the reboot unit
 - **delay** (optional): Number of seconds to wait before executing reboot
   (default: 0 for immediate reboot)
-- **on_success**, **on_failure**, **always** (optional): Standard trigger fields
-  (though typically not used since reboot terminates execution)
