@@ -1,4 +1,4 @@
-module github.com/cbrake/metalci
+module github.com/cbrake/brun
 
 go 1.24
 

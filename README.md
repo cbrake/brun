@@ -1,16 +1,19 @@
-# MetalCI
+# BRun
 
-MetalCI is a tool to run automated builds/tests with a focus on bare-metal hardware testing. Features/goals:
+BRun is a tool to run automated builds/tests with a focus on Linux bare-machine
+testing. Features/goals:
 
-- focus is low level hardware testing
+- focus is low level testing
 - does not require containers (but may support them in the future)
 - simple YAML config format
 - designed first to run native
 - can run tests/builds on a local workstation
+- fast
+- built-in commands for common tasks like boot, cron, email, logging
 
 ## Install
 
-To install, download the latest release and then run `metalci install`.
+To install, download the latest release and then run `brun install`.
 
 If this is run as root, it installs a systemd service that runs as root,
 otherwise as the user that runs the install.
@@ -22,16 +25,16 @@ If a config file does not exist, one is created.
 Build the project:
 
 ```bash
-go build -o metalci ./cmd/metalci
+go build -o brun ./cmd/brun
 ```
 
-Run MetalCI with a configuration file:
+Run BRun with a configuration file:
 
-- `metalci run config.yaml`: (run the program)
-- `metalci install`: (install and setup the program)
+- `brun run config.yaml`: (run the program)
+- `brun install`: (install and setup the program)
 
-MetalCI can be configured for a one-time run (default), or a long running
-process that continually looks for triggers.
+BRun can be configured for a one-time run (default), or a long running process
+that continually looks for triggers.
 
 **One-time run (current implementation):**
 
@@ -44,7 +47,7 @@ any units whose conditions are met, and then exits. This is suitable for:
 
 **Long-running mode (planned):**
 
-In the future, MetalCI will support a daemon mode that continuously monitors
+In the future, BRun will support a daemon mode that continuously monitors
 trigger conditions and executes units when triggered. This will be suitable for:
 
 - System service deployment
@@ -62,16 +65,16 @@ Additional log units can log specific events.
 
 ## State
 
-MetalCI uses a single common state file (YAML format) where all units store
-state between runs. This unified approach simplifies state management and makes
-it easy to:
+BRun uses a single common state file (YAML format) where all units store state
+between runs. This unified approach simplifies state management and makes it
+easy to:
 
 - Track all unit state in one location
 - Back up and restore state atomically
 - Clear all state with a single file deletion
 - Inspect and debug state using standard YAML tools
 
-The state file location must be set in the MetalCI YAML file.
+The state file location must be set in the BRun config file.
 
 **State Data:**
 
@@ -88,32 +91,31 @@ The state file uses YAML format for consistency with the configuration file.
 Each unit stores its state under a key corresponding to its name or type.
 
 The state file is automatically created with appropriate permissions (0644) when
-MetalCI runs for the first time.
+BRun runs for the first time.
 
 ## File format
 
-YAML is used for MetalCI file format and leverages the best of Gitlab CI/CD,
-Drone, Ansible, and other popular systems.
+YAML is used for BRun file format and leverages the best of Gitlab CI/CD, Drone,
+Ansible, and other popular systems.
 
 The system is composed of units. Each unit can trigger additional units. This
 allows us to start/sequence operations and create build/test pipelines.
 
 ### Config
 
-The MetalCI file consists of a required `config` section with the following
-fields:
+The BRun file consists of a required `config` section with the following fields:
 
 ```yaml
 config:
-  state_location: /var/lib/metalci/state.yaml
+  state_location: /var/lib/brun/state.yaml
 ```
 
 **Fields:**
 
 - **state_location** (required): Path to the state file where units store their
   state between runs.
-  - Defaults to `/var/lib/metalci/state.yaml` for root installs
-  - Defaults to `~/.config/metalci/state.yaml` for user installs
+  - Defaults to `/var/lib/brun/state.yaml` for root installs
+  - Defaults to `~/.config/brun/state.yaml` for user installs
 
 The config file also contains a `units` section as described below.
 
@@ -134,15 +136,15 @@ All units share the following common fields:
 
 ### Start
 
-The Start trigger always fires when metalci runs. This can be used to trigger
-other units every time the program executes, regardless of boot state or other
+The Start trigger always fires when brun runs. This can be used to trigger other
+units every time the program executes, regardless of boot state or other
 conditions.
 
 **Configuration example:**
 
 ```yaml
 config:
-  state_location: /var/lib/metalci/state.yaml
+  state_location: /var/lib/brun/state.yaml
 
 units:
   - start:
@@ -159,7 +161,7 @@ units:
 
 **Behavior:**
 
-- Always triggers on every metalci run
+- Always triggers on every brun run
 - Does not maintain any state
 - Useful for unconditional execution pipelines
 
@@ -182,7 +184,7 @@ The boot trigger detects boot events by:
 
 ```yaml
 config:
-  state_location: /var/lib/metalci/state.yaml
+  state_location: /var/lib/brun/state.yaml
 
 units:
   - boot:
@@ -211,7 +213,7 @@ test pipelines.
 
 ```yaml
 config:
-  state_location: /var/lib/metalci/state.yaml
+  state_location: /var/lib/brun/state.yaml
 
 units:
   - boot:
@@ -223,7 +225,7 @@ units:
       name: build
       directory: /home/user/project
       script: |
-        go build -o metalci ./cmd/metalci
+        go build -o brun ./cmd/metalci
         go test -v
       on_success:
         - deploy
@@ -242,7 +244,7 @@ units:
 - **script** (required): Shell commands to execute. Can be a single command or a
   multi-line script
 - **directory** (optional): Working directory where the script will be executed.
-  Defaults to the directory where metalci was invoked
+  Defaults to the directory where brun was invoked
 - **on_success**, **on_failure**, **always** (optional): Standard trigger fields
 
 **Behavior:**
@@ -262,7 +264,7 @@ if it doesn't exist, and entries are appended with timestamps.
 
 ```yaml
 config:
-  state_location: /var/lib/metalci/state.yaml
+  state_location: /var/lib/brun/state.yaml
 
 units:
   - start:
@@ -275,17 +277,17 @@ units:
   - run:
       name: build
       script: |
-        go build -o metalci ./cmd/metalci
+        go build -o brun ./cmd/metalci
       on_failure:
         - log-error
 
   - log:
       name: log-run
-      file: /var/log/metalci/pipeline.log
+      file: /var/log/brun/pipeline.log
 
   - log:
       name: log-error
-      file: /var/log/metalci/errors.log
+      file: /var/log/brun/errors.log
 ```
 
 **Fields:**
@@ -319,7 +321,7 @@ sequences.
 
 ```yaml
 config:
-  state_location: /var/lib/metalci/state.yaml
+  state_location: /var/lib/brun/state.yaml
 
 units:
   - reboot:

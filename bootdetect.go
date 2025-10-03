@@ -1,4 +1,4 @@
-package metalci
+package brun
 
 import (
 	"fmt"

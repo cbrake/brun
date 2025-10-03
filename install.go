@@ -1,4 +1,4 @@
-package metalci
+package brun
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	systemServicePath = "/etc/systemd/system/metalci.service"
+	systemServicePath = "/etc/systemd/system/brun.service"
 	userServiceDir    = ".config/systemd/user"
-	userServiceName   = "metalci.service"
+	userServiceName   = "brun.service"
 )
 
-// Install installs metalci as a systemd service
+// Install installs brun as a systemd service
 // If run as root, installs system-wide service
 // Otherwise, installs user service
 func Install() error {
@@ -42,7 +42,7 @@ func Install() error {
 func installSystemService(execPath string) error {
 	fmt.Println("Installing system-wide systemd service...")
 
-	configPath := "/etc/metalci/config.yaml"
+	configPath := "/etc/brun/config.yaml"
 
 	// Create default config if it doesn't exist
 	if err := createDefaultConfigIfNeeded(configPath); err != nil {
@@ -64,11 +64,11 @@ func installSystemService(execPath string) error {
 	}
 
 	// Enable service
-	if err := exec.Command("systemctl", "enable", "metalci.service").Run(); err != nil {
+	if err := exec.Command("systemctl", "enable", "brun.service").Run(); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)
 	}
 
-	fmt.Println("Service enabled. Start it with: systemctl start metalci.service")
+	fmt.Println("Service enabled. Start it with: systemctl start brun.service")
 	return nil
 }
 
@@ -81,7 +81,7 @@ func installUserService(execPath string) error {
 		return fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	configPath := filepath.Join(homeDir, ".config", "metalci", "config.yaml")
+	configPath := filepath.Join(homeDir, ".config", "brun", "config.yaml")
 
 	// Create default config if it doesn't exist
 	if err := createDefaultConfigIfNeeded(configPath); err != nil {
@@ -115,19 +115,19 @@ func installUserService(execPath string) error {
 		return fmt.Errorf("failed to enable service: %w", err)
 	}
 
-	fmt.Println("Service enabled. Start it with: systemctl --user start metalci.service")
+	fmt.Println("Service enabled. Start it with: systemctl --user start brun.service")
 	return nil
 }
 
 // generateSystemServiceFile generates the systemd service file content for system service
 func generateSystemServiceFile(execPath string) string {
 	return fmt.Sprintf(`[Unit]
-Description=MetalCI - Bare-Metal Hardware Testing CI
+Description=BRun - Bare-Machine Runner
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=%s run /etc/metalci/config.yaml
+ExecStart=%s run /etc/brun/config.yaml
 StandardOutput=journal
 StandardError=journal
 Restart=no
@@ -140,10 +140,10 @@ WantedBy=multi-user.target
 // generateUserServiceFile generates the systemd service file content for user service
 func generateUserServiceFile(execPath string) string {
 	homeDir, _ := os.UserHomeDir()
-	configPath := filepath.Join(homeDir, ".config", "metalci", "config.yaml")
+	configPath := filepath.Join(homeDir, ".config", "brun", "config.yaml")
 
 	return fmt.Sprintf(`[Unit]
-Description=MetalCI - Bare-Metal Hardware Testing CI
+Description=BRun - Bare-Machine Runner
 After=network.target
 
 [Service]
@@ -173,15 +173,15 @@ func createDefaultConfigIfNeeded(configPath string) error {
 	}
 
 	// Default config content - use different state location for root vs user
-	stateLocation := "/var/lib/metalci/state.yaml"
-	if configPath != "/etc/metalci/config.yaml" {
+	stateLocation := "/var/lib/brun/state.yaml"
+	if configPath != "/etc/brun/config.yaml" {
 		// User install
 		homeDir, _ := os.UserHomeDir()
-		stateLocation = filepath.Join(homeDir, ".config", "metalci", "state.yaml")
+		stateLocation = filepath.Join(homeDir, ".config", "brun", "state.yaml")
 	}
 
-	defaultConfig := fmt.Sprintf(`# MetalCI Configuration File
-# See https://github.com/cbrake/metalci for documentation
+	defaultConfig := fmt.Sprintf(`# BRun Configuration File
+# See https://github.com/cbrake/brun for documentation
 
 config:
   state_location: %s
