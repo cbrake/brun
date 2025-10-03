@@ -303,13 +303,17 @@ units:
 - File permissions are set to 0644
 - Directory permissions are set to 0755
 
-### Git Unit
+### Git Unit (todo)
 
 A Git trigger is generated when a Git update is detected in a local workspace.
 
-### Cron Unit
+### Cron Unit (todo)
 
 A Cron trigger unit is configured using the standard Unit cron format.
+
+### Email Unit (todo)
+
+Can be used to email the results of a unit.
 
 ### Reboot Unit
 
