@@ -134,7 +134,7 @@ All units share the following common fields:
 - **always** (optional): An array of unit names to trigger regardless of whether
   this unit succeeds or fails. These units run after success/failure triggers.
 
-### Start
+### Start Unit
 
 The Start trigger always fires when brun runs. This can be used to trigger other
 units every time the program executes, regardless of boot state or other
@@ -165,7 +165,7 @@ units:
 - Does not maintain any state
 - Useful for unconditional execution pipelines
 
-### Boot
+### Boot Unit
 
 The boot unit triggers if this is the first time the program has been run since
 the system booted. The boot unit stores the last boot time in the common state
@@ -200,7 +200,7 @@ When the boot trigger fires successfully, it will trigger the units listed in
 The boot time is automatically stored in the common state file under the unit's
 name.
 
-### Run
+### Run Unit
 
 The Run unit executes arbitrary shell commands or scripts. This is the primary
 execution unit for running builds, tests, or any other commands. The exit code
@@ -254,7 +254,7 @@ units:
 - Non-zero exit codes are considered failures and trigger `on_failure` units
 - Both stdout and stderr are logged
 
-### Log
+### Log Unit
 
 The Log unit writes log entries to a file. This is useful for recording events,
 errors, or other information during pipeline execution. The log file is created
@@ -303,15 +303,15 @@ units:
 - File permissions are set to 0644
 - Directory permissions are set to 0755
 
-### Git
+### Git Unit
 
 A Git trigger is generated when a Git update is detected in a local workspace.
 
-### Cron
+### Cron Unit
 
 A Cron trigger unit is configured using the standard Unit cron format.
 
-### Reboot
+### Reboot Unit
 
 The reboot unit logs and reboots the system. This is typically used in reboot
 cycle testing where the boot trigger can count boot cycles and trigger test
