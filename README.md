@@ -32,7 +32,7 @@ testing. Features/goals:
 Here's a complete example showing all supported unit types:
 
 ```yaml
-config:
+konfig:
   state_location: /var/lib/brun/state.yaml
 
 units:
@@ -91,6 +91,10 @@ units:
   - log:
       name: log-test-error
       file: /var/log/brun/test-errors.log
+
+  # Count unit - track how many times units trigger
+  - count:
+      name: build-counter
 
   # Reboot unit - reboot the system (for reboot cycle testing)
   - reboot:
@@ -380,6 +384,68 @@ units:
 - Appends log entries with timestamps
 - File permissions are set to 0644
 - Directory permissions are set to 0755
+
+### Count Unit
+
+The Count unit creates an entry in the state file for every unit that triggers
+this unit and counts how many times it has been triggered. This is useful for
+tracking how often specific events occur or how many times particular units
+execute.
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - start:
+      name: start-trigger
+      on_success:
+        - build
+      always:
+        - count-runs
+
+  - run:
+      name: build
+      script: |
+        go build -o brun ./cmd/brun
+      on_success:
+        - count-builds
+      on_failure:
+        - count-failures
+
+  - count:
+      name: count-runs
+
+  - count:
+      name: count-builds
+
+  - count:
+      name: count-failures
+```
+
+**Behavior:**
+
+- Tracks separate counts for each unit that triggers it
+- Stores counts in the state file under the count unit's name
+- Each triggering unit has its own counter
+- Counts persist across runs
+
+**State File Format:**
+
+The count unit stores data in the state file like this:
+
+```yaml
+count-runs:
+  start-trigger: 5
+
+count-builds:
+  build: 3
+
+count-failures:
+  build: 1
+```
 
 ### Git Unit (todo)
 

@@ -148,6 +148,13 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 			toTrigger = append(toTrigger, u.OnFailure()...)
 		}
 		toTrigger = append(toTrigger, u.Always()...)
+	case *CountUnit:
+		if execErr == nil {
+			toTrigger = append(toTrigger, u.OnSuccess()...)
+		} else {
+			toTrigger = append(toTrigger, u.OnFailure()...)
+		}
+		toTrigger = append(toTrigger, u.Always()...)
 	}
 
 	// Execute triggered units
@@ -162,6 +169,11 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 		if logUnit, ok := targetUnit.(*LogUnit); ok {
 			logUnit.SetOutput(output)
 			logUnit.SetTriggeringUnit(unit.Name())
+		}
+
+		// If it's a count unit, pass the triggering unit name
+		if countUnit, ok := targetUnit.(*CountUnit); ok {
+			countUnit.SetTriggeringUnit(unit.Name())
 		}
 
 		// Check if already executed

@@ -25,6 +25,7 @@ type UnitConfigWrapper struct {
 	Reboot *RebootConfig `yaml:"reboot,omitempty"`
 	Run    *RunConfig    `yaml:"run,omitempty"`
 	Log    *LogConfig    `yaml:"log,omitempty"`
+	Count  *CountConfig  `yaml:"count,omitempty"`
 	// Future trigger types can be added here
 	// Git  *GitConfig  `yaml:"git,omitempty"`
 	// Cron *CronConfig `yaml:"cron,omitempty"`
@@ -137,6 +138,22 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 			unit := NewLogUnit(
 				cfg.Name,
 				cfg.File,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.Count != nil {
+			cfg := wrapper.Count
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+
+			unit := NewCountUnit(
+				cfg.Name,
+				state,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,

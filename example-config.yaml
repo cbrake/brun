@@ -27,6 +27,8 @@ units:
         - test-fail
       on_failure:
         - notify-admin
+      always:
+        - count-builds
 
   - run:
       name: test-unit
@@ -49,3 +51,5 @@ units:
       name: log-error
       file: error.log
 
+  - count:
+      name: count-builds
