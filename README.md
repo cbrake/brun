@@ -3,13 +3,88 @@
 BRun is a tool to run automated builds/tests with a focus on Linux bare-machine
 testing. Features/goals:
 
-- focus is low level testing
+- simplicity
+- composed of chainable units
+- emphasis is on automated testing that can have various triggers and
+  intelligently log and notifiy
+- build in commands for a lot of stuff you might need
+- focus on low level testing
+- first priority is to run native
 - does not require containers (but may support them in the future)
 - simple YAML config format
-- designed first to run native
-- can run tests/builds on a local workstation
 - fast
 - built-in commands for common tasks like boot, cron, email, logging
+
+## Example Configuration
+
+Here's a complete example showing all supported unit types:
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  # Start trigger - fires every time brun runs
+  - start:
+      name: on-start
+      on_success:
+        - build
+
+  # Boot trigger - fires once per boot cycle
+  - boot:
+      name: on-boot
+      on_success:
+        - build
+        - test
+      always:
+        - log-boot
+
+  # Run unit - executes shell commands/scripts
+  - run:
+      name: build
+      directory: /home/user/project
+      script: |
+        echo "Building project..."
+        go build -o brun ./cmd/brun
+        echo "Build complete"
+      on_success:
+        - test
+      on_failure:
+        - log-build-error
+
+  # Run unit - run tests
+  - run:
+      name: test
+      script: |
+        echo "Running tests..."
+        go test -v
+      on_success:
+        - log-success
+      on_failure:
+        - log-test-error
+
+  # Log unit - write to log files
+  - log:
+      name: log-boot
+      file: /var/log/brun/boot.log
+
+  - log:
+      name: log-success
+      file: /var/log/brun/success.log
+
+  - log:
+      name: log-build-error
+      file: /var/log/brun/build-errors.log
+
+  - log:
+      name: log-test-error
+      file: /var/log/brun/test-errors.log
+
+  # Reboot unit - reboot the system (for reboot cycle testing)
+  - reboot:
+      name: reboot-system
+      delay: 5
+```
 
 ## Install
 
