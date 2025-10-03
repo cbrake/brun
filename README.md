@@ -18,8 +18,8 @@ testing. Features/goals:
 - simplicity
 - composed of chainable units
 - emphasis is on automated testing that can have various triggers and
-  intelligently log and notifiy
-- build in commands for a lot of stuff you might need
+  intelligently log and notify
+- built-in commands for a lot of stuff you might need
 - focus on low level testing
 - first priority is to run native
 - does not require containers (but may support them in the future)
@@ -145,7 +145,7 @@ trigger conditions and executes units when triggered. This will be suitable for:
 
 By default, logging is sent to STDOUT, and each unit logs:
 
-- logs when it triggers or runs
+- when it triggers or runs
 - any errors
 
 Additional log units can log specific events.
@@ -182,7 +182,7 @@ BRun runs for the first time.
 
 ## File format
 
-YAML is used for BRun file format and leverages the best of Gitlab CI/CD, Drone,
+YAML is used for the BRun file format and leverages the best of Gitlab CI/CD, Drone,
 Ansible, and other popular systems.
 
 The system is composed of units. Each unit can trigger additional units. This
