@@ -159,6 +159,60 @@ This mode is enabled by passing the `-daemon` flag to the run command:
 brun run config.yaml -daemon
 ```
 
+## Circular Dependency Protection
+
+BRun protects against circular dependencies when units trigger each other. For
+example, if Unit A triggers Unit B, and Unit B triggers Unit A, this could cause
+an infinite loop.
+
+**How it works:**
+
+- The orchestrator maintains a results map that tracks which units have executed
+  in the current trigger cycle
+- Before executing a unit, the orchestrator checks if it has already run in this
+  cycle
+- If a unit has already executed, it is skipped to prevent circular dependencies
+- At the start of each trigger cycle (every 10 seconds in daemon mode), the
+  results map is cleared, allowing units to run again in the next cycle
+
+This approach allows:
+
+- **Periodic triggers to work correctly**: Units can be triggered multiple times
+  across different cycles (e.g., cron triggers firing every minute)
+- **Circular dependency protection**: Within a single trigger cycle, units cannot
+  trigger each other recursively
+
+**Example:**
+
+```yaml
+units:
+  - cron:
+      name: every-minute
+      schedule: "* * * * *"
+      on_success:
+        - task-a
+
+  - run:
+      name: task-a
+      script: echo "Task A"
+      always:
+        - task-b
+
+  - run:
+      name: task-b
+      script: echo "Task B"
+      always:
+        - task-a  # This would create a circular dependency
+```
+
+In this example:
+- The cron trigger fires every minute and triggers `task-a`
+- `task-a` triggers `task-b`
+- `task-b` attempts to trigger `task-a`, but it's already in the results map
+- The circular trigger is prevented, and the log shows: "Unit 'task-a' already
+  executed in this chain, skipping to prevent circular dependency"
+- In the next minute, the results map is cleared and the cycle can run again
+
 ## Logging
 
 By default, logging is sent to STDOUT, and each unit logs:

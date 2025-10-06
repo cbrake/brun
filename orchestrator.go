@@ -40,25 +40,7 @@ func NewOrchestrator(units []Unit) *Orchestrator {
 // Run executes all units with proper trigger handling (one-time run)
 func (o *Orchestrator) Run(ctx context.Context) error {
 	log.Println("Starting orchestrator...")
-
-	// Check all trigger units and execute if they should fire
-	for _, unit := range o.units {
-		if trigger, ok := unit.(TriggerUnit); ok {
-			shouldTrigger, err := trigger.Check(ctx)
-			if err != nil {
-				log.Printf("Error checking trigger '%s': %v", unit.Name(), err)
-				continue
-			}
-
-			if shouldTrigger {
-				log.Printf("Trigger '%s' activated", unit.Name())
-				if err := o.executeUnit(ctx, unit); err != nil {
-					log.Printf("Trigger '%s' failed: %v", unit.Name(), err)
-				}
-			}
-		}
-	}
-
+	o.checkAndExecuteTriggers(ctx, true)
 	log.Println("Orchestrator finished")
 	return nil
 }
@@ -89,6 +71,10 @@ func (o *Orchestrator) RunDaemon(ctx context.Context) error {
 // checkAndExecuteTriggers checks all trigger units and executes them if they should fire
 // If isStartup is true, all triggers are checked. If false, startup triggers are skipped.
 func (o *Orchestrator) checkAndExecuteTriggers(ctx context.Context, isStartup bool) {
+	// Clear results at the start of each check cycle to allow units to be re-executed
+	// in subsequent trigger cycles (e.g., cron triggers firing every minute)
+	o.results = make(map[string]*UnitResult)
+
 	for _, unit := range o.units {
 		if trigger, ok := unit.(TriggerUnit); ok {
 			// Skip startup-only triggers during polling (only check them on app startup)
@@ -135,7 +121,10 @@ func (o *Orchestrator) executeUnit(ctx context.Context, unit Unit) error {
 	go func() {
 		// Use MultiWriter to write to both buffer and original stdout
 		mw := io.MultiWriter(&outputBuf, oldStdout)
-		io.Copy(mw, r)
+		_, err := io.Copy(mw, r)
+		if err != nil {
+			log.Println("Error copying output buffer: ", err)
+		}
 		done <- true
 	}()
 
@@ -224,6 +213,12 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 		// If it's a count unit, pass the triggering unit name
 		if countUnit, ok := targetUnit.(*CountUnit); ok {
 			countUnit.SetTriggeringUnit(unit.Name())
+		}
+
+		// Check if already executed in this trigger chain (prevents circular dependencies)
+		if _, executed := o.results[unitName]; executed {
+			log.Printf("Unit '%s' already executed in this chain, skipping to prevent circular dependency", unitName)
+			continue
 		}
 
 		log.Printf("Triggering unit '%s'", unitName)
