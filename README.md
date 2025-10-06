@@ -299,6 +299,12 @@ The Start trigger always fires when brun runs. This can be used to trigger other
 units every time the program executes, regardless of boot state or other
 conditions.
 
+**Behavior:**
+
+- Always triggers on every brun run
+- Does not maintain any state
+- Useful for unconditional execution pipelines
+
 **Configuration example:**
 
 ```yaml
@@ -313,19 +319,13 @@ units:
         - test-unit
 ```
 
-**Behavior:**
-
-- Always triggers on every brun run
-- Does not maintain any state
-- Useful for unconditional execution pipelines
-
 ### Boot Unit
 
 The boot unit triggers if this is the first time the program has been run since
 the system booted. The boot unit stores the last boot time in the common state
 file.
 
-**How it works:**
+**Behavior:**
 
 The boot trigger detects boot events by:
 
@@ -363,6 +363,20 @@ determines success or failure, which then triggers the appropriate units.
 Multiple Run units can be defined in a configuration file to create build and
 test pipelines.
 
+**Fields:**
+
+- **script** (required): Shell commands to execute. Can be a single command or a
+  multi-line script
+- **directory** (optional): Working directory where the script will be executed.
+  Defaults to the directory where brun was invoked
+
+**Behavior:**
+
+- The script is executed using the system shell
+- Exit code 0 is considered success and triggers `on_success` units
+- Non-zero exit codes are considered failures and trigger `on_failure` units
+- Both stdout and stderr are logged
+
 **Configuration example:**
 
 ```yaml
@@ -392,25 +406,22 @@ units:
         ./deploy.sh
 ```
 
-**Fields:**
-
-- **script** (required): Shell commands to execute. Can be a single command or a
-  multi-line script
-- **directory** (optional): Working directory where the script will be executed.
-  Defaults to the directory where brun was invoked
-
-**Behavior:**
-
-- The script is executed using the system shell
-- Exit code 0 is considered success and triggers `on_success` units
-- Non-zero exit codes are considered failures and trigger `on_failure` units
-- Both stdout and stderr are logged
-
 ### Log Unit
 
 The Log unit writes log entries to a file. This is useful for recording events,
 errors, or other information during pipeline execution. The log file is created
 if it doesn't exist, and entries are appended with timestamps.
+
+**Fields:**
+
+- **file** (required): Path to the log file where entries will be written
+
+**Behavior:**
+
+- Creates the log file and parent directories if they don't exist
+- Appends log entries with timestamps
+- File permissions are set to 0644
+- Directory permissions are set to 0755
 
 **Configuration example:**
 
@@ -442,23 +453,34 @@ units:
       file: /var/log/brun/errors.log
 ```
 
-**Fields:**
-
-- **file** (required): Path to the log file where entries will be written
-
-**Behavior:**
-
-- Creates the log file and parent directories if they don't exist
-- Appends log entries with timestamps
-- File permissions are set to 0644
-- Directory permissions are set to 0755
-
 ### Count Unit
 
 The Count unit creates an entry in the state file for every unit that triggers
 this unit and counts how many times it has been triggered. This is useful for
 tracking how often specific events occur or how many times particular units
 execute.
+
+**Behavior:**
+
+- Tracks separate counts for each unit that triggers it
+- Stores counts in the state file under the count unit's name
+- Each triggering unit has its own counter
+- Counts persist across runs
+
+**State File Format:**
+
+The count unit stores data in the state file like this:
+
+```yaml
+count-runs:
+  start-trigger: 5
+
+count-builds:
+  build: 3
+
+count-failures:
+  build: 1
+```
 
 **Configuration example:**
 
@@ -493,28 +515,6 @@ units:
       name: count-failures
 ```
 
-**Behavior:**
-
-- Tracks separate counts for each unit that triggers it
-- Stores counts in the state file under the count unit's name
-- Each triggering unit has its own counter
-- Counts persist across runs
-
-**State File Format:**
-
-The count unit stores data in the state file like this:
-
-```yaml
-count-runs:
-  start-trigger: 5
-
-count-builds:
-  build: 3
-
-count-failures:
-  build: 1
-```
-
 ### Cron Unit
 
 The Cron unit is a trigger that fires based on a cron schedule. It uses the
@@ -522,40 +522,6 @@ standard cron format to define when the trigger should activate. In daemon mode,
 the trigger is checked every 10 seconds. The
 [robfig/cron](https://pkg.go.dev/github.com/robfig/cron/v3) package is used for
 schedule parsing.
-
-**Configuration example:**
-
-```yaml
-config:
-  state_location: /var/lib/brun/state.yaml
-
-units:
-  # Cron trigger - runs every day at 2:30 AM
-  - cron:
-      name: daily-backup
-      schedule: "30 2 * * *"
-      on_success:
-        - backup-unit
-
-  # Cron trigger - runs every 5 minutes
-  - cron:
-      name: health-check
-      schedule: "*/5 * * * *"
-      on_success:
-        - check-services
-
-  - run:
-      name: backup-unit
-      script: |
-        echo "Running daily backup..."
-        # backup commands here
-
-  - run:
-      name: check-services
-      script: |
-        echo "Checking services..."
-        # health check commands here
-```
 
 **Fields:**
 
@@ -604,6 +570,40 @@ health-check:
   last_execution: "2025-10-03T18:00:00-04:00"
 ```
 
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  # Cron trigger - runs every day at 2:30 AM
+  - cron:
+      name: daily-backup
+      schedule: "30 2 * * *"
+      on_success:
+        - backup-unit
+
+  # Cron trigger - runs every 5 minutes
+  - cron:
+      name: health-check
+      schedule: "*/5 * * * *"
+      on_success:
+        - check-services
+
+  - run:
+      name: backup-unit
+      script: |
+        echo "Running daily backup..."
+        # backup commands here
+
+  - run:
+      name: check-services
+      script: |
+        echo "Checking services..."
+        # health check commands here
+```
+
 ### Git Unit (todo)
 
 A Git trigger is generated when a Git update is detected in a local workspace.
@@ -618,6 +618,11 @@ The reboot unit logs and reboots the system. This is typically used in reboot
 cycle testing where the boot trigger can count boot cycles and trigger test
 sequences.
 
+**Fields:**
+
+- **delay** (optional): Number of seconds to wait before executing reboot
+  (default: 0 for immediate reboot)
+
 **Configuration example:**
 
 ```yaml
@@ -629,8 +634,3 @@ units:
       name: reboot-system
       delay: 5 # optional delay in seconds before reboot (default: 0)
 ```
-
-**Fields:**
-
-- **delay** (optional): Number of seconds to wait before executing reboot
-  (default: 0 for immediate reboot)
