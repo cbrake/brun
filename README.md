@@ -974,3 +974,13 @@ units:
       name: reboot-system
       delay: 5 # optional delay in seconds before reboot (default: 0)
 ```
+
+## Status
+
+This project is a quick prototype to explore these concepts. The syntax may
+change as we learn how to better do this.
+
+Feedback/contributions welcome!
+
+Please [discuss](https://github.com/cbrake/brun/discussions) before doing
+anything major.
