@@ -9,8 +9,8 @@
 </p>
 
 Did you even want a simple tool to run workflows natively on your workstation,
-server, or embedded device? Welcome to BRun -- a tool to run automated
-workflows with a focus on Linux bare-os (no containers or dependencies).
+server, or embedded device? Welcome to BRun -- a tool to run automated workflows
+with a focus on Linux bare-os (no containers or dependencies).
 
 **Features/goals:**
 
@@ -743,30 +743,6 @@ units:
       script: |
         echo "Running tests..."
         go test -v ./...
-```
-
-**Common patterns:**
-
-```yaml
-# Watch all Go files recursively
-- file:
-    name: watch-go
-    pattern: "**/*.go"
-
-# Watch configuration files
-- file:
-    name: watch-config
-    pattern: "config/*.yaml"
-
-# Watch specific directory non-recursively
-- file:
-    name: watch-src
-    pattern: "src/*.js"
-
-# Watch multiple file types
-- file:
-    name: watch-web
-    pattern: "**/*.{html,css,js}"
 ```
 
 **Daemon mode example:**
