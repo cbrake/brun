@@ -10,6 +10,10 @@ and this project adheres to
 
 ### Changed
 
+## [0.0.4] - 2025-10-06
+
+- Add version command.
+
 ## [0.0.3] - 2025-10-06
 
 - Releases are now a single binary instead of archive. This makes it easier to
