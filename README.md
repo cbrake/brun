@@ -179,8 +179,8 @@ This approach allows:
 
 - **Periodic triggers to work correctly**: Units can be triggered multiple times
   across different cycles (e.g., cron triggers firing every minute)
-- **Circular dependency protection**: Within a single trigger cycle, units cannot
-  trigger each other recursively
+- **Circular dependency protection**: Within a single trigger cycle, units
+  cannot trigger each other recursively
 
 **Example:**
 
@@ -202,10 +202,11 @@ units:
       name: task-b
       script: echo "Task B"
       always:
-        - task-a  # This would create a circular dependency
+        - task-a # This would create a circular dependency
 ```
 
 In this example:
+
 - The cron trigger fires every minute and triggers `task-a`
 - `task-a` triggers `task-b`
 - `task-b` attempts to trigger `task-a`, but it's already in the results map
@@ -369,6 +370,9 @@ test pipelines.
   multi-line script
 - **directory** (optional): Working directory where the script will be executed.
   Defaults to the directory where brun was invoked
+- **timeout** (optional): timeout duration for the task to complete (e.g.,
+  "30s", "5m", "1h", "1h30m"). If no timeout is specified, it runs until
+  completion. If the task times out, an error message is logged.
 
 **Behavior:**
 
@@ -552,6 +556,7 @@ Standard 5-field cron format:
 ```
 
 Examples:
+
 - `* * * * *` - Every minute
 - `*/5 * * * *` - Every 5 minutes
 - `0 2 * * *` - Daily at 2:00 AM

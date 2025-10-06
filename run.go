@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // RunConfig represents the configuration for a Run unit
@@ -13,6 +14,7 @@ type RunConfig struct {
 	UnitConfig `yaml:",inline"`
 	Script     string `yaml:"script"`
 	Directory  string `yaml:"directory,omitempty"`
+	Timeout    string `yaml:"timeout,omitempty"`
 }
 
 // RunUnit executes shell scripts/commands
@@ -20,17 +22,19 @@ type RunUnit struct {
 	name      string
 	script    string
 	directory string
+	timeout   time.Duration
 	onSuccess []string
 	onFailure []string
 	always    []string
 }
 
 // NewRunUnit creates a new Run unit
-func NewRunUnit(name, script, directory string, onSuccess, onFailure, always []string) *RunUnit {
+func NewRunUnit(name, script, directory string, timeout time.Duration, onSuccess, onFailure, always []string) *RunUnit {
 	return &RunUnit{
 		name:      name,
 		script:    script,
 		directory: directory,
+		timeout:   timeout,
 		onSuccess: onSuccess,
 		onFailure: onFailure,
 		always:    always,
@@ -51,6 +55,14 @@ func (r *RunUnit) Type() string {
 func (r *RunUnit) Run(ctx context.Context) error {
 	log.Printf("Running unit '%s'", r.name)
 
+	// Apply timeout if configured
+	if r.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, r.timeout)
+		defer cancel()
+		log.Printf("Timeout set to %s", r.timeout)
+	}
+
 	// Create command to execute script using shell
 	cmd := exec.CommandContext(ctx, "sh", "-c", r.script)
 
@@ -66,6 +78,10 @@ func (r *RunUnit) Run(ctx context.Context) error {
 
 	// Run the command
 	if err := cmd.Run(); err != nil {
+		// Check if error is due to context timeout
+		if ctx.Err() == context.DeadlineExceeded {
+			return fmt.Errorf("task timed out after %s", r.timeout)
+		}
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			return fmt.Errorf("script exited with code %d", exitErr.ExitCode())
 		}

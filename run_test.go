@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestRunUnit_Success(t *testing.T) {
@@ -12,6 +13,7 @@ func TestRunUnit_Success(t *testing.T) {
 		"test-run",
 		"echo 'Hello World'",
 		"",
+		0,
 		[]string{"next-unit"},
 		[]string{"error-unit"},
 		[]string{"always-unit"},
@@ -51,6 +53,7 @@ func TestRunUnit_Failure(t *testing.T) {
 		"test-run-fail",
 		"exit 1",
 		"",
+		0,
 		nil,
 		nil,
 		nil,
@@ -71,6 +74,7 @@ func TestRunUnit_WithDirectory(t *testing.T) {
 		"test-run-dir",
 		"echo 'test' > test.txt",
 		tempDir,
+		0,
 		nil,
 		nil,
 		nil,
@@ -100,6 +104,7 @@ echo "line 3"
 		"test-multiline",
 		script,
 		tempDir,
+		0,
 		nil,
 		nil,
 		nil,
@@ -196,5 +201,101 @@ func TestCreateUnits_RunMissingScript(t *testing.T) {
 	_, err := config.CreateUnits()
 	if err == nil {
 		t.Error("Expected error for missing script")
+	}
+}
+
+func TestRunUnit_WithTimeout(t *testing.T) {
+	// Test that a task times out correctly
+	unit := NewRunUnit(
+		"test-timeout",
+		"sleep 5",
+		"",
+		1*time.Second,
+		nil,
+		nil,
+		nil,
+	)
+
+	ctx := context.Background()
+	err := unit.Run(ctx)
+	if err == nil {
+		t.Error("Expected timeout error")
+	}
+
+	if err != nil && err.Error() != "task timed out after 1s" {
+		t.Errorf("Expected timeout error message, got: %v", err)
+	}
+}
+
+func TestLoadConfig_WithTimeout(t *testing.T) {
+	tempDir := t.TempDir()
+	configFile := filepath.Join(tempDir, "config.yaml")
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	configContent := `config:
+  state_location: ` + stateFile + `
+
+units:
+  - run:
+      name: quick-task
+      script: echo "done"
+      timeout: 30s
+`
+
+	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write test config: %v", err)
+	}
+
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	units, err := config.CreateUnits()
+	if err != nil {
+		t.Fatalf("CreateUnits failed: %v", err)
+	}
+
+	if len(units) != 1 {
+		t.Fatalf("Expected 1 unit, got %d", len(units))
+	}
+
+	runUnit, ok := units[0].(*RunUnit)
+	if !ok {
+		t.Fatal("Unit is not a RunUnit")
+	}
+
+	if runUnit.timeout != 30*time.Second {
+		t.Errorf("Expected timeout 30s, got %v", runUnit.timeout)
+	}
+}
+
+func TestLoadConfig_InvalidTimeout(t *testing.T) {
+	tempDir := t.TempDir()
+	configFile := filepath.Join(tempDir, "config.yaml")
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	configContent := `config:
+  state_location: ` + stateFile + `
+
+units:
+  - run:
+      name: bad-timeout
+      script: echo "test"
+      timeout: invalid
+`
+
+	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write test config: %v", err)
+	}
+
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	_, err = config.CreateUnits()
+	if err == nil {
+		t.Error("Expected error for invalid timeout format")
 	}
 }

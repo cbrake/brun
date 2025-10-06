@@ -3,6 +3,7 @@ package brun
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -115,10 +116,21 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				return nil, fmt.Errorf("unit %d: script is required", i)
 			}
 
+			// Parse timeout if specified
+			var timeout time.Duration
+			if cfg.Timeout != "" {
+				var err error
+				timeout, err = time.ParseDuration(cfg.Timeout)
+				if err != nil {
+					return nil, fmt.Errorf("unit %d (%s): invalid timeout format '%s': %w", i, cfg.Name, cfg.Timeout, err)
+				}
+			}
+
 			unit := NewRunUnit(
 				cfg.Name,
 				cfg.Script,
 				cfg.Directory,
+				timeout,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,
