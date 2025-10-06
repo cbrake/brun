@@ -343,7 +343,7 @@ BRun supports the following unit types:
 - [Log Unit](#log-unit) - Writes log entries to files
 - [Reboot Unit](#reboot-unit) - Reboots the system
 - [Run Unit](#run-unit) - Executes shell commands/scripts
-- [Start Unit](#start-unit) - Triggers on every run
+- [Start Unit](#start-unit) - Triggers on every program start
 
 ### Common Unit Fields
 
