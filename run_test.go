@@ -14,6 +14,7 @@ func TestRunUnit_Success(t *testing.T) {
 		"echo 'Hello World'",
 		"",
 		0,
+		"",
 		[]string{"next-unit"},
 		[]string{"error-unit"},
 		[]string{"always-unit"},
@@ -54,6 +55,7 @@ func TestRunUnit_Failure(t *testing.T) {
 		"exit 1",
 		"",
 		0,
+		"",
 		nil,
 		nil,
 		nil,
@@ -75,6 +77,7 @@ func TestRunUnit_WithDirectory(t *testing.T) {
 		"echo 'test' > test.txt",
 		tempDir,
 		0,
+		"",
 		nil,
 		nil,
 		nil,
@@ -105,6 +108,7 @@ echo "line 3"
 		script,
 		tempDir,
 		0,
+		"",
 		nil,
 		nil,
 		nil,
@@ -211,6 +215,7 @@ func TestRunUnit_WithTimeout(t *testing.T) {
 		"sleep 5",
 		"",
 		1*time.Second,
+		"",
 		nil,
 		nil,
 		nil,
@@ -297,5 +302,89 @@ units:
 	_, err = config.CreateUnits()
 	if err == nil {
 		t.Error("Expected error for invalid timeout format")
+	}
+}
+
+func TestRunUnit_WithShell(t *testing.T) {
+	// Test with bash shell
+	unit := NewRunUnit(
+		"test-bash",
+		"echo 'Hello from bash'",
+		"",
+		0,
+		"bash",
+		nil,
+		nil,
+		nil,
+	)
+
+	if unit.shell != "bash" {
+		t.Errorf("Expected shell 'bash', got '%s'", unit.shell)
+	}
+
+	ctx := context.Background()
+	if err := unit.Run(ctx); err != nil {
+		t.Errorf("Expected success, got error: %v", err)
+	}
+}
+
+func TestRunUnit_DefaultShell(t *testing.T) {
+	// Test that default shell is 'sh' when not specified
+	unit := NewRunUnit(
+		"test-default-shell",
+		"echo 'Hello'",
+		"",
+		0,
+		"",
+		nil,
+		nil,
+		nil,
+	)
+
+	if unit.shell != "sh" {
+		t.Errorf("Expected default shell 'sh', got '%s'", unit.shell)
+	}
+}
+
+func TestLoadConfig_WithShell(t *testing.T) {
+	tempDir := t.TempDir()
+	configFile := filepath.Join(tempDir, "config.yaml")
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	configContent := `config:
+  state_location: ` + stateFile + `
+
+units:
+  - run:
+      name: bash-task
+      script: echo "running with bash"
+      shell: bash
+`
+
+	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write test config: %v", err)
+	}
+
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	units, err := config.CreateUnits()
+	if err != nil {
+		t.Fatalf("CreateUnits failed: %v", err)
+	}
+
+	if len(units) != 1 {
+		t.Fatalf("Expected 1 unit, got %d", len(units))
+	}
+
+	runUnit, ok := units[0].(*RunUnit)
+	if !ok {
+		t.Fatal("Unit is not a RunUnit")
+	}
+
+	if runUnit.shell != "bash" {
+		t.Errorf("Expected shell 'bash', got '%s'", runUnit.shell)
 	}
 }

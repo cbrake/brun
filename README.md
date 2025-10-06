@@ -449,6 +449,8 @@ test pipelines.
 - **timeout** (optional): timeout duration for the task to complete (e.g.,
   "30s", "5m", "1h", "1h30m"). If no timeout is specified, it runs until
   completion. If the task times out, an error message is logged.
+- **shell** (optional): specify shell to use when running command (bash, etc).
+  By default, 'sh' is used.
 
 **Behavior:**
 

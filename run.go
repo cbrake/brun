@@ -15,6 +15,7 @@ type RunConfig struct {
 	Script     string `yaml:"script"`
 	Directory  string `yaml:"directory,omitempty"`
 	Timeout    string `yaml:"timeout,omitempty"`
+	Shell      string `yaml:"shell,omitempty"`
 }
 
 // RunUnit executes shell scripts/commands
@@ -23,18 +24,24 @@ type RunUnit struct {
 	script    string
 	directory string
 	timeout   time.Duration
+	shell     string
 	onSuccess []string
 	onFailure []string
 	always    []string
 }
 
 // NewRunUnit creates a new Run unit
-func NewRunUnit(name, script, directory string, timeout time.Duration, onSuccess, onFailure, always []string) *RunUnit {
+func NewRunUnit(name, script, directory string, timeout time.Duration, shell string, onSuccess, onFailure, always []string) *RunUnit {
+	// Default to 'sh' if no shell is specified
+	if shell == "" {
+		shell = "sh"
+	}
 	return &RunUnit{
 		name:      name,
 		script:    script,
 		directory: directory,
 		timeout:   timeout,
+		shell:     shell,
 		onSuccess: onSuccess,
 		onFailure: onFailure,
 		always:    always,
@@ -63,8 +70,8 @@ func (r *RunUnit) Run(ctx context.Context) error {
 		log.Printf("Timeout set to %s", r.timeout)
 	}
 
-	// Create command to execute script using shell
-	cmd := exec.CommandContext(ctx, "sh", "-c", r.script)
+	// Create command to execute script using configured shell
+	cmd := exec.CommandContext(ctx, r.shell, "-c", r.script)
 
 	// Set working directory if specified
 	if r.directory != "" {

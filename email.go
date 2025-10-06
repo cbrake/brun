@@ -115,8 +115,6 @@ func (e *EmailUnit) Run(ctx context.Context) error {
 
 	// Build body
 	var body strings.Builder
-	body.WriteString(fmt.Sprintf("BRun Email Notification\n"))
-	body.WriteString(fmt.Sprintf("=========================\n\n"))
 	body.WriteString(fmt.Sprintf("Triggered by unit: %s\n", unitName))
 	body.WriteString(fmt.Sprintf("Timestamp: %s\n\n", timestamp))
 

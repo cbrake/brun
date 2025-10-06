@@ -132,6 +132,7 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				cfg.Script,
 				cfg.Directory,
 				timeout,
+				cfg.Shell,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,
