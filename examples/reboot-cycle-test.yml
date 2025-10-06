@@ -1,0 +1,41 @@
+# BRun Configuration File
+# See https://github.com/cbrake/brun for documentation
+# This script can be used to run reboot cycles to test
+# the stability on a Linux system (common with products
+# running Embedded Linux).
+
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      always:
+        - boot-counter
+  - start:
+      name: start-trigger
+      on_success:
+        - check-nvme
+  - run:
+      name: check-nvme
+      script: |
+        if [ ! -e "/dev/nvme0" ]; then
+          echo "NVME drive not detected"
+          exit -1
+        fi
+      on_failure:
+        - log-error
+        - error-counter
+      always:
+        - reboot
+  - log:
+      name: log-error
+      file: /var/lib/brun/error.log
+  - count:
+      name: error-counter
+  - count:
+      name: boot-counter
+  - reboot:
+      name: reboot
+      # give us time to log in and stop the reboot
+      delay: 20
