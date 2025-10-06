@@ -12,16 +12,16 @@ import (
 
 // EmailConfig represents the configuration for an Email unit
 type EmailConfig struct {
-	UnitConfig     `yaml:",inline"`
-	To             []string `yaml:"to"`
-	From           string   `yaml:"from"`
-	SubjectPrefix  string   `yaml:"subject_prefix,omitempty"`
-	SMTPHost       string   `yaml:"smtp_host"`
-	SMTPPort       int      `yaml:"smtp_port,omitempty"`
-	SMTPUser       string   `yaml:"smtp_user,omitempty"`
-	SMTPPassword   string   `yaml:"smtp_password,omitempty"`
-	SMTPUseTLS     *bool    `yaml:"smtp_use_tls,omitempty"`
-	IncludeOutput  *bool    `yaml:"include_output,omitempty"`
+	UnitConfig    `yaml:",inline"`
+	To            []string `yaml:"to"`
+	From          string   `yaml:"from"`
+	SubjectPrefix string   `yaml:"subject_prefix,omitempty"`
+	SMTPHost      string   `yaml:"smtp_host"`
+	SMTPPort      int      `yaml:"smtp_port,omitempty"`
+	SMTPUser      string   `yaml:"smtp_user,omitempty"`
+	SMTPPassword  string   `yaml:"smtp_password,omitempty"`
+	SMTPUseTLS    *bool    `yaml:"smtp_use_tls,omitempty"`
+	IncludeOutput *bool    `yaml:"include_output,omitempty"`
 }
 
 // EmailUnit sends email notifications

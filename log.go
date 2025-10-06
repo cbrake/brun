@@ -17,13 +17,13 @@ type LogConfig struct {
 
 // LogUnit writes log messages to a file
 type LogUnit struct {
-	name            string
-	file            string
-	output          string // Output from the triggering unit
-	triggeringUnit  string // Name of the unit that triggered this log
-	onSuccess       []string
-	onFailure       []string
-	always          []string
+	name           string
+	file           string
+	output         string // Output from the triggering unit
+	triggeringUnit string // Name of the unit that triggered this log
+	onSuccess      []string
+	onFailure      []string
+	always         []string
 }
 
 // NewLogUnit creates a new Log unit
