@@ -16,7 +16,8 @@ const (
 // Install installs brun as a systemd service
 // If run as root, installs system-wide service
 // Otherwise, installs user service
-func Install() error {
+// daemonMode determines whether the service runs in daemon mode (continuous) or oneshot mode
+func Install(daemonMode bool) error {
 	// Get the path to the current executable
 	execPath, err := os.Executable()
 	if err != nil {
@@ -33,13 +34,13 @@ func Install() error {
 	isRoot := os.Geteuid() == 0
 
 	if isRoot {
-		return installSystemService(execPath)
+		return installSystemService(execPath, daemonMode)
 	}
-	return installUserService(execPath)
+	return installUserService(execPath, daemonMode)
 }
 
 // installSystemService installs a system-wide systemd service
-func installSystemService(execPath string) error {
+func installSystemService(execPath string, daemonMode bool) error {
 	fmt.Println("Installing system-wide systemd service...")
 
 	configPath := "/etc/brun/config.yaml"
@@ -49,7 +50,7 @@ func installSystemService(execPath string) error {
 		return fmt.Errorf("failed to create config: %w", err)
 	}
 
-	serviceContent := generateSystemServiceFile(execPath)
+	serviceContent := generateSystemServiceFile(execPath, daemonMode)
 
 	// Write service file
 	if err := os.WriteFile(systemServicePath, []byte(serviceContent), 0644); err != nil {
@@ -73,7 +74,7 @@ func installSystemService(execPath string) error {
 }
 
 // installUserService installs a user systemd service
-func installUserService(execPath string) error {
+func installUserService(execPath string, daemonMode bool) error {
 	fmt.Println("Installing user systemd service...")
 
 	homeDir, err := os.UserHomeDir()
@@ -96,7 +97,7 @@ func installUserService(execPath string) error {
 		return fmt.Errorf("failed to create service directory: %w", err)
 	}
 
-	serviceContent := generateUserServiceFile(execPath)
+	serviceContent := generateUserServiceFile(execPath, daemonMode)
 
 	// Write service file
 	if err := os.WriteFile(servicePath, []byte(serviceContent), 0644); err != nil {
@@ -120,42 +121,62 @@ func installUserService(execPath string) error {
 }
 
 // generateSystemServiceFile generates the systemd service file content for system service
-func generateSystemServiceFile(execPath string) string {
+func generateSystemServiceFile(execPath string, daemonMode bool) string {
+	serviceType := "oneshot"
+	execCommand := fmt.Sprintf("%s run /etc/brun/config.yaml", execPath)
+	restart := "no"
+
+	if daemonMode {
+		serviceType = "simple"
+		execCommand = fmt.Sprintf("%s run /etc/brun/config.yaml -daemon", execPath)
+		restart = "always"
+	}
+
 	return fmt.Sprintf(`[Unit]
-Description=BRun - Bare-Machine Runner
+Description=BRun - Bare-OS Runner
 After=network.target
 
 [Service]
-Type=oneshot
-ExecStart=%s run /etc/brun/config.yaml
+Type=%s
+ExecStart=%s
 StandardOutput=journal
 StandardError=journal
-Restart=no
+Restart=%s
 
 [Install]
 WantedBy=multi-user.target
-`, execPath)
+`, serviceType, execCommand, restart)
 }
 
 // generateUserServiceFile generates the systemd service file content for user service
-func generateUserServiceFile(execPath string) string {
+func generateUserServiceFile(execPath string, daemonMode bool) string {
 	homeDir, _ := os.UserHomeDir()
 	configPath := filepath.Join(homeDir, ".config", "brun", "config.yaml")
 
+	serviceType := "oneshot"
+	execCommand := fmt.Sprintf("%s run %s", execPath, configPath)
+	restart := "no"
+
+	if daemonMode {
+		serviceType = "simple"
+		execCommand = fmt.Sprintf("%s run %s -daemon", execPath, configPath)
+		restart = "always"
+	}
+
 	return fmt.Sprintf(`[Unit]
-Description=BRun - Bare-Machine Runner
+Description=BRun - Bare-OS Runner
 After=network.target
 
 [Service]
-Type=oneshot
-ExecStart=%s run %s
+Type=%s
+ExecStart=%s
 StandardOutput=journal
 StandardError=journal
-Restart=no
+Restart=%s
 
 [Install]
 WantedBy=default.target
-`, execPath, configPath)
+`, serviceType, execCommand, restart)
 }
 
 // createDefaultConfigIfNeeded creates a default config file if one doesn't exist

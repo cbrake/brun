@@ -12,8 +12,11 @@
 ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 ```
 
-BRun is a tool to run automated builds/tests with a focus on Linux bare-os (no
-containers or dependencies) testing. Features/goals:
+Did you even want a simple tool to run workflows natively on your workstation,
+server, or embedded device? Welcome to BRun -- a tool to run automated
+builds/tests with a focus on Linux bare-os (no containers or dependencies).
+
+**Features/goals:**
 
 - ✨ **simple!!!**
 - ⚡ **fast!!!**
@@ -27,7 +30,7 @@ containers or dependencies) testing. Features/goals:
 
 ## Example Configuration
 
-Here's a complete example showing all supported unit types:
+Here's an example showing how various units are specified and interact:
 
 ```yaml
 konfig:
@@ -138,7 +141,16 @@ units:
 
 ## Install
 
-To install, download the latest release and then run `brun install`.
+To install, download the
+[latest release](https://github.com/cbrake/brun/releases).
+
+If you would like to install a systemd unit to run brun automatically, then run:
+
+`brun install` (run once then exit)
+
+or
+
+`burn install -daemon` (run in daemon mode)
 
 If this is run as root, it installs a systemd service that runs as root,
 otherwise as the user that runs the install.
@@ -148,16 +160,26 @@ If a config file does not exist, one is created.
 ## Usage
 
 ```
-Usage: ./brun <command> [args]
+Usage: brun COMMAND [OPTIONS]
 
 Commands:
-  run <config-file> [-daemon]    Run brun with the given config file
-                                  -daemon: run in daemon mode (continuous monitoring)
-                                  -unit <unit name>: run a single unit (useful for debugging)
-                                   Triggers are not executed.
-                                  -trigger <unit name>: trigger the named unit and execute
-                                   triggers.
-  install                        Install brun as a systemd service
+  run <config-file>       Run brun with the given config file
+  install                 Install brun as a systemd service
+
+Run Options:
+  -daemon                 Run in daemon mode (continuous monitoring)
+  -unit <name>            Run a single unit (triggers disabled, useful for debugging)
+  -trigger <name>         Trigger a unit and execute its on_success triggers
+
+Install Options:
+  -daemon                 Install service in daemon mode (continuous monitoring)
+
+Examples:
+  brun run config.yaml
+  brun run config.yaml -daemon
+  brun run config.yaml -unit my-build
+  brun install
+  brun install -daemon
 ```
 
 **One-time run:**

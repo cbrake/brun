@@ -30,19 +30,42 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args]\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s COMMAND [OPTIONS]\n\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Commands:\n")
-	fmt.Fprintf(os.Stderr, "  run <config-file> [-daemon]    Run brun with the given config file\n")
-	fmt.Fprintf(os.Stderr, "                                  -daemon: run in daemon mode (continuous monitoring)\n")
-	fmt.Fprintf(os.Stderr, "                                  -unit <unit name>: run a single unit (useful for debugging)\n")
-	fmt.Fprintf(os.Stderr, "                                   Triggers are not executed.\n")
-	fmt.Fprintf(os.Stderr, "                                  -trigger <unit name>: trigger the named unit and execute\n")
-	fmt.Fprintf(os.Stderr, "                                   triggers.\n")
-	fmt.Fprintf(os.Stderr, "  install                        Install brun as a systemd service\n")
+	fmt.Fprintf(os.Stderr, "  run <config-file>       Run brun with the given config file\n")
+	fmt.Fprintf(os.Stderr, "  install                 Install brun as a systemd service\n")
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Run Options:\n")
+	fmt.Fprintf(os.Stderr, "  -daemon                 Run in daemon mode (continuous monitoring)\n")
+	fmt.Fprintf(os.Stderr, "  -unit <name>            Run a single unit (triggers disabled, useful for debugging)\n")
+	fmt.Fprintf(os.Stderr, "  -trigger <name>         Trigger a unit and execute its on_success triggers\n")
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Install Options:\n")
+	fmt.Fprintf(os.Stderr, "  -daemon                 Install service in daemon mode (continuous monitoring)\n")
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Examples:\n")
+	fmt.Fprintf(os.Stderr, "  %s run config.yaml\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s run config.yaml -daemon\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s run config.yaml -unit my-build\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s install\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s install -daemon\n", os.Args[0])
 }
 
-func cmdInstall(_ []string) {
-	if err := brun.Install(); err != nil {
+func cmdInstall(args []string) {
+	daemonMode := false
+
+	// Parse flags
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "-daemon":
+			daemonMode = true
+		default:
+			fmt.Fprintf(os.Stderr, "Unknown flag: %s\n", args[i])
+			os.Exit(1)
+		}
+	}
+
+	if err := brun.Install(daemonMode); err != nil {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)
 	}
