@@ -29,7 +29,7 @@ with a focus on Linux bare-OS (no containers or dependencies).
 Here's an example showing how various units are specified and interact:
 
 ```yaml
-konfig:
+config:
   state_location: /var/lib/brun/state.yaml
 
 units:
