@@ -15,17 +15,15 @@
 BRun is a tool to run automated builds/tests with a focus on Linux bare-os (no
 containers or dependencies) testing. Features/goals:
 
-- **simplicity!!!**
-- composed of chainable units
-- emphasis is on automated testing that can have various triggers and
-  intelligently log and notify
-- built-in commands for a lot of stuff you might need
-- focus on low level testing
-- first priority is to run native
-- does not require containers (but may support them in the future)
-- simple YAML config format
-- fast
-- built-in commands for common tasks like boot, cron, email, logging
+- ✨ **simple!!!**
+- ⚡ **fast!!!**
+- 📦 no dependencies -- just a single binary and go
+- 🛠️ built-in commands for common tasks like boot, cron, email, git, file
+  watching
+- 🔗 composed of chainable units
+- 💻 first priority is to run native
+- 🚫 does not require containers (but may support them in the future)
+- 📄 simple YAML config format
 
 ## Example Configuration
 
