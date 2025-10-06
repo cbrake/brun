@@ -195,6 +195,13 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 			toTrigger = append(toTrigger, u.OnFailure()...)
 		}
 		toTrigger = append(toTrigger, u.Always()...)
+	case *EmailUnit:
+		if execErr == nil {
+			toTrigger = append(toTrigger, u.OnSuccess()...)
+		} else {
+			toTrigger = append(toTrigger, u.OnFailure()...)
+		}
+		toTrigger = append(toTrigger, u.Always()...)
 	}
 
 	// Execute triggered units
@@ -214,6 +221,13 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 		// If it's a count unit, pass the triggering unit name
 		if countUnit, ok := targetUnit.(*CountUnit); ok {
 			countUnit.SetTriggeringUnit(unit.Name())
+		}
+
+		// If it's an email unit, pass the output, triggering unit name, and error
+		if emailUnit, ok := targetUnit.(*EmailUnit); ok {
+			emailUnit.SetOutput(output)
+			emailUnit.SetTriggeringUnit(unit.Name())
+			emailUnit.SetTriggerError(execErr)
 		}
 
 		// Check if already executed in this trigger chain (prevents circular dependencies)

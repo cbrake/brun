@@ -8,14 +8,14 @@
 |____/|_| \_\\__,_|_| |_|
 
 ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-  Build → Test → Deploy
+    Trigger -> Run
 ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 ```
 
-BRun is a tool to run automated builds/tests with a focus on Linux bare-machine
-testing. Features/goals:
+BRun is a tool to run automated builds/tests with a focus on Linux bare-os (no
+containers or dependencies) testing. Features/goals:
 
-- simplicity
+- **simplicity!!!**
 - composed of chainable units
 - emphasis is on automated testing that can have various triggers and
   intelligently log and notify
@@ -102,6 +102,20 @@ units:
       schedule: "*/5 * * * *"
       on_success:
         - test
+
+  # Email unit - send notifications
+  - email:
+      name: email-failure
+      to:
+        - admin@example.com
+      from: brun@example.com
+      subject: "Build/Test Failure"
+      smtp_host: smtp.gmail.com
+      smtp_port: 587
+      smtp_user: brun@example.com
+      smtp_password: your-app-password
+      smtp_use_tls: true
+      include_output: true
 
   # Reboot unit - reboot the system (for reboot cycle testing)
   - reboot:
@@ -614,9 +628,91 @@ units:
 
 A Git trigger is generated when a Git update is detected in a local workspace.
 
-### Email Unit (todo)
+### Email Unit
 
-Can be used to email the results of a unit.
+The Email unit sends email notifications with optional output from triggering
+units. This is useful for alerting on build failures, test results, or other
+important events. Supports both plain SMTP and STARTTLS encryption.
+
+**Fields:**
+
+- **to** (required): Array of email addresses to send to
+- **from** (required): Sender email address
+- **subject_prefix** (optional): Email subject line prefix.
+  ': <unit-name>:<success|fail>' is appended after prefix and is always included.
+- **smtp_host** (required): SMTP server hostname
+- **smtp_port** (optional): SMTP server port. Defaults to 587 (submission port)
+- **smtp_user** (optional): SMTP username for authentication
+- **smtp_password** (optional): SMTP password for authentication
+- **smtp_use_tls** (optional): Enable STARTTLS encryption. Defaults to true
+- **include_output** (optional): Include captured output from triggering unit.
+  Defaults to true
+
+**Behavior:**
+
+- Sends plain text emails using SMTP
+- Can include output from the unit that triggered it (useful for log/error
+  reporting)
+- Supports SMTP authentication
+- STARTTLS encryption enabled by default
+- Works with common email providers (Gmail, SendGrid, Mailgun, etc.)
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      on_success:
+        - build
+
+  - run:
+      name: build
+      script: |
+        go build -o brun ./cmd/brun
+        go test -v
+      on_failure:
+        - email-failure
+
+  - email:
+      name: email-failure
+      to:
+        - admin@example.com
+        - alerts@example.com
+      from: brun@example.com
+      subject_prefix: "Build Alert"
+      smtp_host: smtp.gmail.com
+      smtp_port: 587
+      smtp_user: brun@example.com
+      smtp_password: your-app-password
+      smtp_use_tls: true
+      include_output: true
+```
+
+This will send emails with subjects like:
+- `Build Alert: build:success` (on success)
+- `Build Alert: build:fail` (on failure)
+
+**Gmail example:**
+
+For Gmail, you need to use an app-specific password:
+
+```yaml
+- email:
+    name: notify-admin
+    to:
+      - you@gmail.com
+    from: your-app@gmail.com
+    subject_prefix: "CI/CD"
+    smtp_host: smtp.gmail.com
+    smtp_port: 587
+    smtp_user: your-app@gmail.com
+    smtp_password: your-16-char-app-password
+    smtp_use_tls: true
+```
 
 ### Reboot Unit
 

@@ -51,5 +51,33 @@ units:
       name: log-error
       file: error.log
 
+  - log:
+      name: log-unit
+      file: /tmp/brun-boot.log
+
   - count:
       name: count-builds
+
+  - cron:
+      name: periodic-check
+      schedule: "*/5 * * * *"
+      on_success:
+        - test-unit
+
+  - email:
+      name: notify-admin
+      to:
+        - admin@example.com
+      from: brun@example.com
+      subject_prefix: "BRun Alert"
+      smtp_host: smtp.example.com
+      smtp_port: 587
+      smtp_user: brun@example.com
+      smtp_password: your-password-here
+      smtp_use_tls: true
+      include_output: true
+
+  # Uncomment to enable automatic reboot (use with caution!)
+  # - reboot:
+  #     name: reboot-system
+  #     delay: 5

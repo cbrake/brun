@@ -28,6 +28,7 @@ type UnitConfigWrapper struct {
 	Log    *LogConfig    `yaml:"log,omitempty"`
 	Count  *CountConfig  `yaml:"count,omitempty"`
 	Cron   *CronConfig   `yaml:"cron,omitempty"`
+	Email  *EmailConfig  `yaml:"email,omitempty"`
 	// Future trigger types can be added here
 	// Git  *GitConfig  `yaml:"git,omitempty"`
 }
@@ -186,6 +187,55 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				cfg.Name,
 				cfg.Schedule,
 				state,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.Email != nil {
+			cfg := wrapper.Email
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+			if len(cfg.To) == 0 {
+				return nil, fmt.Errorf("unit %d: to is required", i)
+			}
+			if cfg.From == "" {
+				return nil, fmt.Errorf("unit %d: from is required", i)
+			}
+			if cfg.SMTPHost == "" {
+				return nil, fmt.Errorf("unit %d: smtp_host is required", i)
+			}
+
+			// Set defaults
+			smtpPort := cfg.SMTPPort
+			if smtpPort == 0 {
+				smtpPort = 587 // Default to submission port
+			}
+
+			smtpUseTLS := true
+			if cfg.SMTPUseTLS != nil {
+				smtpUseTLS = *cfg.SMTPUseTLS
+			}
+
+			includeOutput := true
+			if cfg.IncludeOutput != nil {
+				includeOutput = *cfg.IncludeOutput
+			}
+
+			unit := NewEmailUnit(
+				cfg.Name,
+				cfg.To,
+				cfg.From,
+				cfg.SubjectPrefix,
+				cfg.SMTPHost,
+				smtpPort,
+				cfg.SMTPUser,
+				cfg.SMTPPassword,
+				smtpUseTLS,
+				includeOutput,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,
