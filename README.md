@@ -38,7 +38,7 @@ a single binary and no dependencies.
 ## Example Configuration
 
 Here's an example showing how various units are specified and interact (see also
-more [examples](expamples) and our own [dogfood](build.yaml)):
+more [examples](examples) and our own [dogfood](build.yaml)):
 
 ```yaml
 config:
