@@ -24,6 +24,13 @@ with a focus on Linux bare-OS (no containers or dependencies).
 - 🚫 does not require containers (but may support them in the future)
 - 📄 simple YAML config format
 
+**Things you can do with this**
+
+- Reboot cycle test for embedded systems
+- Yocto builds on your powerful workstation
+- Run admin tasks like backups.
+- Monitor the /etc directory a server for changes
+
 ## Example Configuration
 
 Here's an example showing how various units are specified and interact:
@@ -982,5 +989,8 @@ change as we learn how to better do this.
 
 Feedback/contributions welcome!
 
-Please [discuss](https://github.com/cbrake/brun/discussions) before doing
+Please [discuss](https://github.com/cbrake/brun/discussions) before implementing
 anything major.
+
+See [issues](https://github.com/cbrake/brun/issues) and [ideas](ideas.md) for
+future direction.
