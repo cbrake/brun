@@ -10,8 +10,8 @@ changelog:
   skip: true
 builds:
   - main: .
-    id: gitplm
-    binary: gitplm
+    id: brun
+    binary: brun
     env:
       - CGO_ENABLED=0
     goos:
