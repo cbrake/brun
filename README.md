@@ -998,3 +998,5 @@ anything major.
 
 See [issues](https://github.com/cbrake/brun/issues) and [ideas](ideas.md) for
 future direction.
+
+I have no idea if this works on Windows -- feel free to try and let us know.
