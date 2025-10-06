@@ -332,6 +332,19 @@ The config file also contains a `units` section as described below.
 
 ## Units
 
+BRun supports the following unit types:
+
+- [Boot Unit](#boot-unit) - Triggers once per boot cycle
+- [Count Unit](#count-unit) - Tracks trigger counts
+- [Cron Unit](#cron-unit) - Triggers based on cron schedule
+- [Email Unit](#email-unit) - Sends email notifications
+- [File Unit](#file-unit) - Monitors files for changes
+- [Git Unit](#git-unit) - Monitors Git repository for commits
+- [Log Unit](#log-unit) - Writes log entries to files
+- [Reboot Unit](#reboot-unit) - Reboots the system
+- [Run Unit](#run-unit) - Executes shell commands/scripts
+- [Start Unit](#start-unit) - Triggers on every run
+
 ### Common Unit Fields
 
 All units share the following common fields:
