@@ -14,7 +14,7 @@
 
 Did you even want a simple tool to run workflows natively on your workstation,
 server, or embedded device? Welcome to BRun -- a tool to run automated
-builds/tests with a focus on Linux bare-os (no containers or dependencies).
+workflows with a focus on Linux bare-os (no containers or dependencies).
 
 **Features/goals:**
 
