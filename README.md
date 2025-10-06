@@ -8,9 +8,9 @@
 <em>Trigger → Run</em>
 </p>
 
-Did you even want a simple tool to run workflows natively on your workstation,
+Did you ever want a simple tool to run workflows natively on your workstation,
 server, or embedded device? Welcome to BRun -- a tool to run automated workflows
-with a focus on Linux bare-os (no containers or dependencies).
+with a focus on Linux bare-OS (no containers or dependencies).
 
 **Features/goals:**
 
@@ -146,7 +146,7 @@ If you would like to install a systemd unit to run brun automatically, then run:
 
 or
 
-`burn install -daemon` (run in daemon mode)
+`brun install -daemon` (run in daemon mode)
 
 If this is run as root, it installs a systemd service that runs as root,
 otherwise as the user that runs the install.
@@ -701,12 +701,12 @@ The file unit supports advanced glob patterns including:
 - `[a-z]` - matches any character in the range
 - `**` - matches zero or more directories recursively
 
-**Pattern Examples**
+**Pattern Examples:**
 
-- \*_/_.go - all Go files recursively
-- src/\*_/_.ts - all TypeScript files under src/
-- config/\*.yaml - config files non-recursively
-- \*_/_.{html,css,js} - multiple file types
+- `**/*.go` - all Go files recursively
+- `src/**/*.ts` - all TypeScript files under src/
+- `config/*.yaml` - config files non-recursively
+- `**/*.{html,css,js}` - multiple file types
 
 **State File Format:**
 
