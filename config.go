@@ -29,8 +29,7 @@ type UnitConfigWrapper struct {
 	Count  *CountConfig  `yaml:"count,omitempty"`
 	Cron   *CronConfig   `yaml:"cron,omitempty"`
 	Email  *EmailConfig  `yaml:"email,omitempty"`
-	// Future trigger types can be added here
-	// Git  *GitConfig  `yaml:"git,omitempty"`
+	Git    *GitConfig    `yaml:"git,omitempty"`
 }
 
 // LoadConfig loads a configuration file from the given path
@@ -236,6 +235,26 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				cfg.SMTPPassword,
 				smtpUseTLS,
 				includeOutput,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.Git != nil {
+			cfg := wrapper.Git
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+			if cfg.Repository == "" {
+				return nil, fmt.Errorf("unit %d: repository is required", i)
+			}
+
+			unit := NewGitTrigger(
+				cfg.Name,
+				cfg.Repository,
+				state,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,

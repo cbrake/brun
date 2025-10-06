@@ -64,6 +64,17 @@ units:
       on_success:
         - test-unit
 
+  # Git trigger - monitors this repository for changes (daemon mode)
+  # Run with: brun run example-config.yaml -daemon
+  - git:
+      name: watch-repo
+      repository: .
+      on_success:
+        - build-unit
+        - test-unit
+      always:
+        - log-unit
+
   - email:
       name: notify-admin
       to:

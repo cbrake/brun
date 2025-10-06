@@ -103,6 +103,13 @@ units:
       on_success:
         - test
 
+  # Git trigger - monitors repository for changes
+  - git:
+      name: watch-repo
+      repository: /home/user/project
+      on_success:
+        - build
+
   # Email unit - send notifications
   - email:
       name: email-failure
@@ -258,7 +265,7 @@ Units store different types of state information in the YAML file:
 - **Boot trigger**: Last boot time (RFC3339 timestamp) and boot count
 - **Cron trigger**: Last execution time (RFC3339 timestamp)
 - **Count unit**: Trigger counts per triggering unit
-- **Git trigger**: Last processed commit hash (todo)
+- **Git trigger**: Last processed commit hash
 
 **State File Format:**
 
@@ -624,9 +631,75 @@ units:
         # health check commands here
 ```
 
-### Git Unit (todo)
+### Git Unit
 
-A Git trigger is generated when a Git update is detected in a local workspace.
+The Git unit is a trigger that fires when changes are detected in a Git
+repository. It monitors the repository's HEAD commit and triggers when new
+commits are detected. This is useful for automatically running builds, tests, or
+deployments when code changes.
+
+**Fields:**
+
+- **repository** (required): Path to the Git repository to monitor
+
+**Behavior:**
+
+- Monitors the HEAD commit hash of the specified Git repository
+- Triggers when the commit hash changes (new commits detected)
+- Stores the last seen commit hash in the state file
+- Triggers on first run (initial repository state)
+- Uses go-git library (no git CLI tool required)
+- Works in both one-time and daemon modes
+
+**State File Format:**
+
+The git unit stores the last seen commit hash:
+
+```yaml
+watch-repo:
+  last_commit_hash: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0"
+```
+
+**Configuration example:**
+
+When running in daemon mode, the git trigger continuously monitors the
+repository and automatically triggers builds/tests when new commits are
+detected:
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - git:
+      name: auto-build
+      repository: /home/user/project
+      on_success:
+        - build
+
+  - run:
+      name: build
+      directory: /home/user/project
+      script: |
+        go build -o app ./cmd/app
+        go test -v ./...
+      always:
+        - email
+
+  - email:
+      name: email
+      to:
+        - team@example.com
+      from: ci@example.com
+      subject_prefix: "Build Success"
+      smtp_host: smtp.example.com
+      smtp_port: 587
+      smtp_user: ci@example.com
+      smtp_password: secret
+```
+
+This creates a continuous integration system that automatically builds and tests
+your code whenever changes are pushed to the repository.
 
 ### Email Unit
 
@@ -638,8 +711,8 @@ important events. Supports both plain SMTP and STARTTLS encryption.
 
 - **to** (required): Array of email addresses to send to
 - **from** (required): Sender email address
-- **subject_prefix** (optional): Email subject line prefix.
-  ': <unit-name>:<success|fail>' is appended after prefix and is always included.
+- **subject_prefix** (optional): Email subject line prefix. ':
+  <unit-name>:<success|fail>' is appended after prefix and is always included.
 - **smtp_host** (required): SMTP server hostname
 - **smtp_port** (optional): SMTP server port. Defaults to 587 (submission port)
 - **smtp_user** (optional): SMTP username for authentication
@@ -693,6 +766,7 @@ units:
 ```
 
 This will send emails with subjects like:
+
 - `Build Alert: build:success` (on success)
 - `Build Alert: build:fail` (on failure)
 
@@ -713,6 +787,10 @@ For Gmail, you need to use an app-specific password:
     smtp_password: your-16-char-app-password
     smtp_use_tls: true
 ```
+
+### Email Receive Unit (TODO)
+
+This can receive emails to trigger units.
 
 ### Reboot Unit
 
