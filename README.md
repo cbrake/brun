@@ -8,9 +8,10 @@
 <em>Trigger → Run</em>
 </p>
 
-Did you ever want a simple tool to run workflows natively on your workstation,
-server, or embedded device? Welcome to BRun -- a tool to run automated workflows
-with a focus on Linux bare-OS (no containers or dependencies).
+BRun is a native Linux automation tool that connects triggers (boot, cron, file
+changes, git commits) to actions (run scripts, send emails, log events, reboot).
+Build CI/CD pipelines, automate system tasks, or test embedded devices—all with
+a single binary and no dependencies.
 
 **Features/goals:**
 
