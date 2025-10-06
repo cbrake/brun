@@ -1,16 +1,12 @@
 # BRun
 
-```
- ____  ____
-| __ )|  _ \ _   _ _ __
-|  _ \| |_) | | | | '_ \
-| |_) |  _ <| |_| | | | |
-|____/|_| \_\\__,_|_| |_|
+<p align="center">
+  <img src="assets/brun-logo.png" alt="BRun Logo" width="400">
+</p>
 
-~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-    Trigger -> Run
-~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-```
+<p align="center">
+<em>Trigger → Run</em>
+</p>
 
 Did you even want a simple tool to run workflows natively on your workstation,
 server, or embedded device? Welcome to BRun -- a tool to run automated
