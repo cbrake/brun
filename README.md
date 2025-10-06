@@ -16,9 +16,9 @@ with a focus on Linux bare-OS (no containers or dependencies).
 
 - ✨ **simple!!!**
 - ⚡ **fast!!!**
-- 📦 no dependencies -- just a single binary and go
-- 🛠️ built-in commands for common tasks like boot, cron, email, git, file
-  watching
+- 📦 no dependencies -- download a single binary and go for it ...
+- 🛠️ built-in commands for common tasks like boot, scripts, cron, email, git,
+  file watching
 - 🔗 composed of chainable units
 - 💻 first priority is to run native
 - 🚫 does not require containers (but may support them in the future)
