@@ -64,6 +64,14 @@ units:
       on_success:
         - test-unit
 
+  # File trigger - monitors Go files for changes (daemon mode)
+  # Run with: brun run example-config.yaml -daemon
+  - file:
+      name: watch-go-files
+      pattern: "**/*.go"
+      on_success:
+        - build-unit
+
   # Git trigger - monitors this repository for changes (daemon mode)
   # Run with: brun run example-config.yaml -daemon
   - git:
@@ -71,7 +79,6 @@ units:
       repository: .
       on_success:
         - build-unit
-        - test-unit
       always:
         - log-unit
 

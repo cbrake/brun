@@ -103,6 +103,14 @@ units:
       on_success:
         - test
 
+  # File trigger - monitors source files for changes (daemon mode)
+  - file:
+      name: watch-files
+      pattern: "**/*.go"
+      on_success:
+        - build
+        - test
+
   # Git trigger - monitors repository for changes
   - git:
       name: watch-repo
@@ -265,6 +273,7 @@ Units store different types of state information in the YAML file:
 - **Boot trigger**: Last boot time (RFC3339 timestamp) and boot count
 - **Cron trigger**: Last execution time (RFC3339 timestamp)
 - **Count unit**: Trigger counts per triggering unit
+- **File trigger**: File hashes for change detection
 - **Git trigger**: Last processed commit hash
 
 **State File Format:**
@@ -630,6 +639,152 @@ units:
         echo "Checking services..."
         # health check commands here
 ```
+
+### File Unit
+
+The File unit monitors files and triggers when they are changed. Files can be
+specified using glob patterns with support for `**` recursive matching. New or
+removed files are detected as changes.
+
+**Fields:**
+
+- **pattern** (required): Glob pattern to match files (supports `**` for
+  recursive matching)
+
+**Behavior:**
+
+- Monitors files matching the glob pattern
+- Triggers when file content changes (detected via SHA256 hash)
+- Triggers when files are added or removed
+- Stores file hashes in the state file
+- Triggers on first run (initial file state)
+- Ignores directories (only monitors regular files)
+- Uses doublestar library for recursive glob support
+- Works in both one-time and daemon modes
+
+**Pattern Syntax:**
+
+The file unit supports advanced glob patterns including:
+
+- `*` - matches any sequence of non-separator characters
+- `?` - matches any single non-separator character
+- `[abc]` - matches any character in the set
+- `[a-z]` - matches any character in the range
+- `**` - matches zero or more directories recursively
+
+**Pattern Examples**
+
+- \*_/_.go - all Go files recursively
+- src/\*_/_.ts - all TypeScript files under src/
+- config/\*.yaml - config files non-recursively
+- \*_/_.{html,css,js} - multiple file types
+
+**State File Format:**
+
+The file unit stores a hash of all monitored files:
+
+```yaml
+watch-source:
+  files_state: "file1.go:a1b2c3...|file2.go:d4e5f6..."
+```
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  # File trigger - monitors Go source files
+  - file:
+      name: watch-source
+      pattern: "**/*.go"
+      on_success:
+        - build
+        - test
+
+  - run:
+      name: build
+      script: |
+        echo "Building..."
+        go build -o app ./cmd/app
+
+  - run:
+      name: test
+      script: |
+        echo "Running tests..."
+        go test -v ./...
+```
+
+**Common patterns:**
+
+```yaml
+# Watch all Go files recursively
+- file:
+    name: watch-go
+    pattern: "**/*.go"
+
+# Watch configuration files
+- file:
+    name: watch-config
+    pattern: "config/*.yaml"
+
+# Watch specific directory non-recursively
+- file:
+    name: watch-src
+    pattern: "src/*.js"
+
+# Watch multiple file types
+- file:
+    name: watch-web
+    pattern: "**/*.{html,css,js}"
+```
+
+**Daemon mode example:**
+
+When running in daemon mode, the file trigger continuously monitors files and
+automatically triggers builds/tests when changes are detected:
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - file:
+      name: auto-build
+      pattern: "**/*.go"
+      on_success:
+        - build
+        - test
+      always:
+        - email-notify
+
+  - run:
+      name: build
+      script: |
+        go build -o app ./cmd/app
+
+  - run:
+      name: test
+      script: |
+        go test -v ./...
+
+  - email:
+      name: email-notify
+      to:
+        - team@example.com
+      from: ci@example.com
+      subject_prefix: "Build Status"
+      smtp_host: smtp.example.com
+      smtp_port: 587
+      smtp_user: ci@example.com
+      smtp_password: secret
+```
+
+Run with: `brun run config.yaml -daemon`
+
+This creates a continuous integration system that automatically builds and tests
+your code whenever source files are modified.
 
 ### Git Unit
 

@@ -29,6 +29,7 @@ type UnitConfigWrapper struct {
 	Count  *CountConfig  `yaml:"count,omitempty"`
 	Cron   *CronConfig   `yaml:"cron,omitempty"`
 	Email  *EmailConfig  `yaml:"email,omitempty"`
+	File   *FileConfig   `yaml:"file,omitempty"`
 	Git    *GitConfig    `yaml:"git,omitempty"`
 }
 
@@ -235,6 +236,26 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				cfg.SMTPPassword,
 				smtpUseTLS,
 				includeOutput,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.File != nil {
+			cfg := wrapper.File
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+			if cfg.Pattern == "" {
+				return nil, fmt.Errorf("unit %d: pattern is required", i)
+			}
+
+			unit := NewFileTrigger(
+				cfg.Name,
+				cfg.Pattern,
+				state,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,
