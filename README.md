@@ -24,12 +24,15 @@ with a focus on Linux bare-OS (no containers or dependencies).
 - 🚫 does not require containers (but may support them in the future)
 - 📄 simple YAML config format
 
-**Things you can do with this**
+**Things might do with this**
 
-- Reboot cycle test for embedded systems
-- Yocto builds on your powerful workstation
+- Reboot cycle test for embedded systems.
+- Yocto builds on your powerful workstation.
 - Run admin tasks like backups.
-- Monitor the /etc directory a server for changes
+- Monitor the `/etc` directory a server for changes.
+- Implemented a watchdog that reboots the system under certain conditions.
+- Run build/test/deploy pipelines.
+- Notify someone when CPU usage is too high or diskspace too low.
 
 ## Example Configuration
 
