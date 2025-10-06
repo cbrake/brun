@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 // UnitResult represents the result of a unit execution
@@ -17,9 +18,9 @@ type UnitResult struct {
 
 // Orchestrator manages unit execution and triggering
 type Orchestrator struct {
-	units      []Unit
+	units       []Unit
 	unitsByName map[string]Unit
-	results    map[string]*UnitResult
+	results     map[string]*UnitResult
 }
 
 // NewOrchestrator creates a new orchestrator with the given units
@@ -30,13 +31,13 @@ func NewOrchestrator(units []Unit) *Orchestrator {
 	}
 
 	return &Orchestrator{
-		units:      units,
+		units:       units,
 		unitsByName: unitsByName,
-		results:    make(map[string]*UnitResult),
+		results:     make(map[string]*UnitResult),
 	}
 }
 
-// Run executes all units with proper trigger handling
+// Run executes all units with proper trigger handling (one-time run)
 func (o *Orchestrator) Run(ctx context.Context) error {
 	log.Println("Starting orchestrator...")
 
@@ -60,6 +61,55 @@ func (o *Orchestrator) Run(ctx context.Context) error {
 
 	log.Println("Orchestrator finished")
 	return nil
+}
+
+// RunDaemon executes in daemon mode, continuously checking triggers
+func (o *Orchestrator) RunDaemon(ctx context.Context) error {
+	log.Println("Starting orchestrator in daemon mode...")
+
+	// Check interval - check triggers every 10 seconds as per README
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	// Run once immediately on startup (check all triggers including boot triggers)
+	o.checkAndExecuteTriggers(ctx, true)
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("Orchestrator daemon shutting down...")
+			return ctx.Err()
+		case <-ticker.C:
+			// During polling, skip startup triggers like boot triggers
+			o.checkAndExecuteTriggers(ctx, false)
+		}
+	}
+}
+
+// checkAndExecuteTriggers checks all trigger units and executes them if they should fire
+// If isStartup is true, all triggers are checked. If false, startup triggers are skipped.
+func (o *Orchestrator) checkAndExecuteTriggers(ctx context.Context, isStartup bool) {
+	for _, unit := range o.units {
+		if trigger, ok := unit.(TriggerUnit); ok {
+			// Skip startup-only triggers during polling (only check them on app startup)
+			if !isStartup && (unit.Type() == "trigger.boot" || unit.Type() == "trigger.start") {
+				continue
+			}
+
+			shouldTrigger, err := trigger.Check(ctx)
+			if err != nil {
+				log.Printf("Error checking trigger '%s': %v", unit.Name(), err)
+				continue
+			}
+
+			if shouldTrigger {
+				log.Printf("Trigger '%s' activated", unit.Name())
+				if err := o.executeUnit(ctx, unit); err != nil {
+					log.Printf("Trigger '%s' failed: %v", unit.Name(), err)
+				}
+			}
+		}
+	}
 }
 
 // executeUnit runs a single unit and processes its triggers
@@ -174,12 +224,6 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 		// If it's a count unit, pass the triggering unit name
 		if countUnit, ok := targetUnit.(*CountUnit); ok {
 			countUnit.SetTriggeringUnit(unit.Name())
-		}
-
-		// Check if already executed
-		if _, executed := o.results[unitName]; executed {
-			log.Printf("Unit '%s' already executed, skipping", unitName)
-			continue
 		}
 
 		log.Printf("Triggering unit '%s'", unitName)

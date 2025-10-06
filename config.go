@@ -26,9 +26,9 @@ type UnitConfigWrapper struct {
 	Run    *RunConfig    `yaml:"run,omitempty"`
 	Log    *LogConfig    `yaml:"log,omitempty"`
 	Count  *CountConfig  `yaml:"count,omitempty"`
+	Cron   *CronConfig   `yaml:"cron,omitempty"`
 	// Future trigger types can be added here
 	// Git  *GitConfig  `yaml:"git,omitempty"`
-	// Cron *CronConfig `yaml:"cron,omitempty"`
 }
 
 // LoadConfig loads a configuration file from the given path
@@ -153,6 +153,26 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 
 			unit := NewCountUnit(
 				cfg.Name,
+				state,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.Cron != nil {
+			cfg := wrapper.Cron
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+			if cfg.Schedule == "" {
+				return nil, fmt.Errorf("unit %d: schedule is required", i)
+			}
+
+			unit := NewCronTrigger(
+				cfg.Name,
+				cfg.Schedule,
 				state,
 				cfg.OnSuccess,
 				cfg.OnFailure,

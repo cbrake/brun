@@ -96,6 +96,13 @@ units:
   - count:
       name: build-counter
 
+  # Cron trigger - runs every 5 minutes (useful in daemon mode)
+  - cron:
+      name: periodic-check
+      schedule: "*/5 * * * *"
+      on_success:
+        - test
+
   # Reboot unit - reboot the system (for reboot cycle testing)
   - reboot:
       name: reboot-system
@@ -129,21 +136,28 @@ that continually looks for triggers.
 
 **One-time run (current implementation):**
 
-The current implementation runs once, checks all trigger conditions, executes
-any units whose conditions are met, and then exits. This is suitable for:
+By default, BRun runs once, checks all trigger conditions, executes any units
+whose conditions are met, and then exits. This is suitable for:
 
-- Running from cron
+- Running from external cron
 - Manual invocation
 - Testing configurations
 
-**Long-running mode (planned):**
+**Long-running mode (daemon mode):**
 
-In the future, BRun will support a daemon mode that continuously monitors
-trigger conditions and executes units when triggered. This will be suitable for:
+BRun supports a daemon mode that continuously monitors trigger conditions and
+executes units when triggered. In this mode, triggers are checked every 10
+seconds. This is suitable for:
 
 - System service deployment
-- Continuous monitoring of git repositories
-- Scheduled cron-based execution
+- Continuous monitoring with cron triggers
+- Long-running background processes
+
+This mode is enabled by passing the `-daemon` flag to the run command:
+
+```bash
+brun run config.yaml -daemon
+```
 
 ## Logging
 
@@ -171,10 +185,10 @@ The state file location must be set in the BRun config file.
 
 Units store different types of state information in the YAML file:
 
-- **Boot trigger**: Last boot time (RFC3339 timestamp)
-- **Boot trigger**: boot count
-- **Git trigger**: Last processed commit hash
-- **Cron trigger**: Last execution time
+- **Boot trigger**: Last boot time (RFC3339 timestamp) and boot count
+- **Cron trigger**: Last execution time (RFC3339 timestamp)
+- **Count unit**: Trigger counts per triggering unit
+- **Git trigger**: Last processed commit hash (todo)
 
 **State File Format:**
 
@@ -447,13 +461,98 @@ count-failures:
   build: 1
 ```
 
+### Cron Unit
+
+The Cron unit is a trigger that fires based on a cron schedule. It uses the
+standard cron format to define when the trigger should activate. In daemon mode,
+the trigger is checked every 10 seconds. The
+[robfig/cron](https://pkg.go.dev/github.com/robfig/cron/v3) package is used for
+schedule parsing.
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  # Cron trigger - runs every day at 2:30 AM
+  - cron:
+      name: daily-backup
+      schedule: "30 2 * * *"
+      on_success:
+        - backup-unit
+
+  # Cron trigger - runs every 5 minutes
+  - cron:
+      name: health-check
+      schedule: "*/5 * * * *"
+      on_success:
+        - check-services
+
+  - run:
+      name: backup-unit
+      script: |
+        echo "Running daily backup..."
+        # backup commands here
+
+  - run:
+      name: check-services
+      script: |
+        echo "Checking services..."
+        # health check commands here
+```
+
+**Fields:**
+
+- **schedule** (required): Cron schedule in standard format (minute hour day
+  month weekday)
+
+**Behavior:**
+
+- Triggers based on the cron schedule
+- Stores last execution time in the state file
+- Works in both one-time and daemon modes
+- In one-time mode: triggers if schedule indicates it should have run since last
+  execution
+- In daemon mode: continuously monitors and triggers at scheduled times
+
+**Cron Schedule Format:**
+
+Standard 5-field cron format:
+
+```
+* * * * *
+│ │ │ │ │
+│ │ │ │ └─── Day of week (0-6, Sunday=0)
+│ │ │ └───── Month (1-12)
+│ │ └─────── Day of month (1-31)
+│ └───────── Hour (0-23)
+└─────────── Minute (0-59)
+```
+
+Examples:
+- `* * * * *` - Every minute
+- `*/5 * * * *` - Every 5 minutes
+- `0 2 * * *` - Daily at 2:00 AM
+- `30 14 * * 1-5` - Weekdays at 2:30 PM
+- `0 0 1 * *` - First day of every month at midnight
+
+**State File Format:**
+
+The cron unit stores the last execution time:
+
+```yaml
+daily-backup:
+  last_execution: "2025-10-03T02:30:00-04:00"
+
+health-check:
+  last_execution: "2025-10-03T18:00:00-04:00"
+```
+
 ### Git Unit (todo)
 
 A Git trigger is generated when a Git update is detected in a local workspace.
-
-### Cron Unit (todo)
-
-A Cron trigger unit is configured using the standard Unit cron format.
 
 ### Email Unit (todo)
 

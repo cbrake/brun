@@ -1,0 +1,42 @@
+config:
+  state_location: /tmp/brun-cron-state.yaml
+
+units:
+  # Start trigger - runs once on startup
+  - start:
+      name: startup
+      on_success:
+        - startup-task
+
+  # Cron trigger - runs every minute
+  - cron:
+      name: every-minute
+      schedule: "* * * * *"
+      on_success:
+        - periodic-task
+
+  # Startup task
+  - run:
+      name: startup-task
+      script: |
+        echo "=== BRun started at $(date) ==="
+        echo "Daemon mode will check triggers every 10 seconds"
+        echo "Cron schedule: every minute"
+
+  # Periodic task triggered by cron
+  - run:
+      name: periodic-task
+      script: |
+        echo "[$(date)] Cron trigger activated - running scheduled task"
+      always:
+        - count-runs
+        - log-runs
+
+  # Count how many times the cron has triggered
+  - count:
+      name: count-runs
+
+  # Log all runs
+  - log:
+      name: log-runs
+      file: /tmp/brun-cron-runs.log

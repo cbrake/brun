@@ -32,8 +32,9 @@ func main() {
 func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s <command> [args]\n\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Commands:\n")
-	fmt.Fprintf(os.Stderr, "  run <config-file>    Run brun with the given config file\n")
-	fmt.Fprintf(os.Stderr, "  install              Install brun as a systemd service\n")
+	fmt.Fprintf(os.Stderr, "  run <config-file> [-daemon]    Run brun with the given config file\n")
+	fmt.Fprintf(os.Stderr, "                                  -daemon: run in daemon mode (continuous monitoring)\n")
+	fmt.Fprintf(os.Stderr, "  install                        Install brun as a systemd service\n")
 }
 
 func cmdInstall(_ []string) {
@@ -46,11 +47,17 @@ func cmdInstall(_ []string) {
 
 func cmdRun(args []string) {
 	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: %s run <config-file>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s run <config-file> [-daemon]\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	configFile := args[0]
+	daemonMode := false
+
+	// Check for -daemon flag
+	if len(args) > 1 && args[1] == "-daemon" {
+		daemonMode = true
+	}
 
 	// Load configuration
 	config, err := brun.LoadConfig(configFile)
@@ -72,10 +79,17 @@ func cmdRun(args []string) {
 	ctx := context.Background()
 	orchestrator := brun.NewOrchestrator(units)
 
-	if err := orchestrator.Run(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error running orchestrator: %v\n", err)
-		os.Exit(1)
+	if daemonMode {
+		fmt.Println("Running in daemon mode (press Ctrl+C to stop)...")
+		if err := orchestrator.RunDaemon(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "Error running orchestrator: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		if err := orchestrator.Run(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "Error running orchestrator: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("All units completed successfully")
 	}
-
-	fmt.Println("All units completed successfully")
 }
