@@ -149,7 +149,7 @@ units:
 ## Install
 
 To install, download the
-[latest release](https://github.com/cbrake/brun/releases).
+[latest release](https://github.com/cbrake/brun/releases) binary.
 
 If you would like to install a systemd unit to run brun automatically, then run:
 

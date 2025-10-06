@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+## [0.0.3] - 2025-10-06
+
+- Releases are now a single binary instead of archive. This makes it easier to
+  install.
+
 ## [0.0.2] - 2025-10-06
 
 ### Added
