@@ -8,6 +8,8 @@ import (
 	"github.com/cbrake/brun"
 )
 
+var version = "dev"
+
 func main() {
 	if len(os.Args) < 2 {
 		printUsage()
@@ -22,6 +24,8 @@ func main() {
 		cmdInstall(args)
 	case "run":
 		cmdRun(args)
+	case "version":
+		cmdVersion()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n\n", command)
 		printUsage()
@@ -34,6 +38,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "Commands:\n")
 	fmt.Fprintf(os.Stderr, "  run <config-file>       Run brun with the given config file\n")
 	fmt.Fprintf(os.Stderr, "  install                 Install brun as a systemd service\n")
+	fmt.Fprintf(os.Stderr, "  version                 Display version information\n")
 	fmt.Fprintf(os.Stderr, "\n")
 	fmt.Fprintf(os.Stderr, "Run Options:\n")
 	fmt.Fprintf(os.Stderr, "  -daemon                 Run in daemon mode (continuous monitoring)\n")
@@ -169,4 +174,8 @@ func cmdRun(args []string) {
 		}
 		fmt.Println("All units completed successfully")
 	}
+}
+
+func cmdVersion() {
+	fmt.Printf("%s\n", version)
 }
