@@ -10,3 +10,10 @@ fail script
 === Unit 'test-fail' - 2025-10-03T17:38:12-04:00 ===
 fail script
 
+=== Unit 'unknown' - 2025-10-06T10:14:48-04:00 (no output) ===
+=== Unit 'test-fail' - 2025-10-06T10:15:42-04:00 ===
+fail script
+
+=== Unit 'test-fail' - 2025-10-06T10:26:16-04:00 ===
+fail script
+

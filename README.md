@@ -118,23 +118,22 @@ otherwise as the user that runs the install.
 
 If a config file does not exist, one is created.
 
-## Running
+## Usage
 
-Build the project:
+```
+Usage: ./brun <command> [args]
 
-```bash
-go build -o brun ./cmd/brun
+Commands:
+  run <config-file> [-daemon]    Run brun with the given config file
+                                  -daemon: run in daemon mode (continuous monitoring)
+                                  -unit <unit name>: run a single unit (useful for debugging)
+                                   Triggers are not executed.
+                                  -trigger <unit name>: trigger the named unit and execute
+                                   triggers.
+  install                        Install brun as a systemd service
 ```
 
-Run BRun with a configuration file:
-
-- `brun run config.yaml`: (run the program)
-- `brun install`: (install and setup the program)
-
-BRun can be configured for a one-time run (default), or a long running process
-that continually looks for triggers.
-
-**One-time run (current implementation):**
+**One-time run:**
 
 By default, BRun runs once, checks all trigger conditions, executes any units
 whose conditions are met, and then exits. This is suitable for:
@@ -143,7 +142,11 @@ whose conditions are met, and then exits. This is suitable for:
 - Manual invocation
 - Testing configurations
 
-**Long-running mode (daemon mode):**
+```bash
+brun run config.yaml
+```
+
+**Daemon mode:**
 
 BRun supports a daemon mode that continuously monitors trigger conditions and
 executes units when triggered. In this mode, triggers are checked every 10
@@ -152,8 +155,6 @@ seconds. This is suitable for:
 - System service deployment
 - Continuous monitoring with cron triggers
 - Long-running background processes
-
-This mode is enabled by passing the `-daemon` flag to the run command:
 
 ```bash
 brun run config.yaml -daemon

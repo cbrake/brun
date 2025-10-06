@@ -3,6 +3,7 @@ package brun
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -226,6 +227,90 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 			log.Printf("Triggered unit '%s' failed: %v", unitName, err)
 		}
 	}
+}
+
+// RunSingleUnit executes a single unit by name
+// If runTriggers is true, the unit runs and all its triggers are executed
+// If runTriggers is false, the unit runs in isolation without executing its triggers
+func (o *Orchestrator) RunSingleUnit(ctx context.Context, unitName string, runTriggers bool) error {
+	unit, ok := o.unitsByName[unitName]
+	if !ok {
+		return fmt.Errorf("unit '%s' not found", unitName)
+	}
+
+	log.Printf("Executing single unit '%s'...", unitName)
+
+	// Clear results
+	o.results = make(map[string]*UnitResult)
+
+	if runTriggers {
+		// Execute unit with triggers (normal execution)
+		if err := o.executeUnit(ctx, unit); err != nil {
+			log.Printf("Unit '%s' failed: %v", unitName, err)
+			return err
+		}
+	} else {
+		// Execute unit without triggers (for debugging)
+		if err := o.executeUnitNoTriggers(ctx, unit); err != nil {
+			log.Printf("Unit '%s' failed: %v", unitName, err)
+			return err
+		}
+	}
+
+	log.Printf("Unit '%s' completed", unitName)
+	return nil
+}
+
+// executeUnitNoTriggers runs a single unit without processing its triggers
+func (o *Orchestrator) executeUnitNoTriggers(ctx context.Context, unit Unit) error {
+	result := &UnitResult{
+		Unit: unit,
+	}
+
+	// Capture output while also displaying it
+	var outputBuf bytes.Buffer
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+
+	// Create a pipe to capture output
+	r, w, _ := os.Pipe()
+
+	// Redirect stdout and stderr
+	os.Stdout = w
+	os.Stderr = w
+
+	// Tee: copy to both buffer (for capturing) and original stdout (for display)
+	done := make(chan bool)
+	go func() {
+		// Use MultiWriter to write to both buffer and original stdout
+		mw := io.MultiWriter(&outputBuf, oldStdout)
+		_, err := io.Copy(mw, r)
+		if err != nil {
+			log.Println("Error copying output buffer: ", err)
+		}
+		done <- true
+	}()
+
+	// Run the unit
+	err := unit.Run(ctx)
+	result.Error = err
+
+	// Close writer and wait for copy to complete
+	w.Close()
+	<-done
+
+	// Restore stdout/stderr
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+
+	result.Output = outputBuf.String()
+
+	// Store result
+	o.results[unit.Name()] = result
+
+	// Do NOT process triggers in this method
+
+	return err
 }
 
 // GetResults returns all execution results
