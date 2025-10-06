@@ -1,0 +1,25 @@
+config:
+  state_location: /tmp/brun-build-state.yaml
+
+units:
+  - start:
+      name: build-trigger
+      on_success:
+        - run-tests
+
+  - run:
+      name: run-tests
+      script: |
+        echo "Running tests..."
+        go test -v
+        echo "Tests passed"
+      on_success:
+        - build-brun
+
+  - run:
+      name: build-brun
+      script: |
+        echo "Building brun..."
+        VERSION=$(git describe --tags HEAD 2>/dev/null || echo "dev")
+        go build -ldflags "-X main.version=${VERSION}" -o brun ./cmd/brun
+        echo "Build complete: brun version ${VERSION}"
