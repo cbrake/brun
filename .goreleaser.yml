@@ -29,7 +29,8 @@ builds:
       pre:
         #- /bin/sh -c '. ./envsetup.sh && siot_setup && siot_build_dependencies'
 archives:
-  - name_template: >-
+  - format: binary
+    name_template: >-
       {{- .ProjectName }}-
       {{- .Tag }}-
       {{- if eq .Os "darwin" }}macos
@@ -37,16 +38,7 @@ archives:
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}{{ .Arm }}{{ end }}
-    wrap_in_directory: true
-    format: tar.gz
-    format_overrides:
-      - goos: windows
-        format: zip
-    files:
-      - README.md
-      - LICENSE
-      - CHANGELOG.md
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
 
 checksum:
   name_template: "checksums.txt"
