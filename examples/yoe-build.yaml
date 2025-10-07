@@ -1,0 +1,61 @@
+# Brun Configuration File for building the Yoe Distribution
+# https://github.com/YoeDistro/yoe-distro 
+# See https://github.com/cbrake/brun for documentation
+
+config:
+  state_location: /home/cbrake/.config/brun/state.yaml
+
+units:
+  # schedule builds at midnight, so we don't clog up
+  # workstation during day
+  - cron:
+      name: yoe-trigger
+      schedule: "0 0 * * *"
+      on_success:
+        - update-yoe
+
+  # check if there are any updates and only build if there are
+  # note, this unit updates the git workspace to the HEAD of
+  # the master branch.
+  - git:
+      name: update-yoe
+      repository: /scratch4/yoe/yoe-distro
+      branch: master
+      reset: true
+      on_failure:
+        - email
+      on_success:
+        - build-agx
+
+  - run:
+      name: build-agx
+      directory: /scratch4/yoe/yoe-distro
+      shell: bash
+      use_pty: true
+      script: |
+        echo "Building AGX Orin"
+        source envsetup.sh jetson-agx-orin-devkit
+        # -qq keeps bitbake from spamming logs and emails with
+        # parsing messages
+        bitbake -qq yoe-simpleiot-image
+      always:
+        - email
+
+  - email:
+      name: email
+      to:
+        - user1@email.com
+        - user2@email.com
+      from: ci@email.com
+      subject_prefix: "BRun Yoe"
+      smtp_host: mail.email.com
+      smtp_port: 587
+      smtp_user: ci@email.com
+      smtp_password: "some password"
+      smtp_use_tls: true
+      include_output: true
+      # limit emails to last 100 lines to keep them
+      # reasonably short
+      limit_lines: 100
+    
+
