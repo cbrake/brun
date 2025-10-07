@@ -154,7 +154,7 @@ To install, download the
 
 Example install on Linux x86:
 
-`wget -O /usr/local/bin/brun https://github.com/cbrake/brun/releases/download/v0.0.4/brun-v0.0.4-linux-x86_64 && chmod 755 /usr/local/bin/brun`
+`wget -O /usr/local/bin/brun https://github.com/cbrake/brun/releases/download/v0.0.5/brun-v0.0.5-linux-x86_64 && chmod 755 /usr/local/bin/brun`
 
 If you would like to install a systemd unit to run brun automatically, then run:
 

@@ -10,6 +10,14 @@ and this project adheres to
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.0.5] - 2025-10-07
+
+### Added
+
 - Run units now support optional `shell` configuration field to specify which
   shell to use (bash, sh, etc.). Defaults to 'sh' when not specified.
 - Run units now support optional `use_pty` configuration field to wrap commands
@@ -17,8 +25,6 @@ and this project adheres to
   require a TTY environment.
 - Added `update` command to automatically update BRun to the latest release
   from GitHub.
-
-### Changed
 
 ### Fixed
 
