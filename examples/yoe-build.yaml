@@ -1,5 +1,6 @@
 # BRun Configuration File for building the Yoe Distribution
 # https://github.com/YoeDistro/yoe-distro 
+# BRun should be run in daemon mode for this config.
 # See https://github.com/cbrake/brun for documentation
 
 config:
