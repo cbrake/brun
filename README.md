@@ -923,6 +923,8 @@ important events. Supports both plain SMTP and STARTTLS encryption.
 - **smtp_use_tls** (optional): Enable STARTTLS encryption. Defaults to true
 - **include_output** (optional): Include captured output from triggering unit.
   Defaults to true
+- **limit_lines** (optional): limit number email lines emailed to number
+  specified.
 
 **Behavior:**
 

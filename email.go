@@ -22,6 +22,7 @@ type EmailConfig struct {
 	SMTPPassword  string   `yaml:"smtp_password,omitempty"`
 	SMTPUseTLS    *bool    `yaml:"smtp_use_tls,omitempty"`
 	IncludeOutput *bool    `yaml:"include_output,omitempty"`
+	LimitLines    int      `yaml:"limit_lines,omitempty"`
 }
 
 // EmailUnit sends email notifications
@@ -36,6 +37,7 @@ type EmailUnit struct {
 	smtpPassword   string
 	smtpUseTLS     bool
 	includeOutput  bool
+	limitLines     int
 	output         string // Output from the triggering unit
 	triggeringUnit string // Name of the unit that triggered this email
 	triggerError   error  // Error from the triggering unit (if any)
@@ -46,7 +48,7 @@ type EmailUnit struct {
 
 // NewEmailUnit creates a new Email unit
 func NewEmailUnit(name string, to []string, from, subjectPrefix, smtpHost string, smtpPort int,
-	smtpUser, smtpPassword string, smtpUseTLS, includeOutput bool,
+	smtpUser, smtpPassword string, smtpUseTLS, includeOutput bool, limitLines int,
 	onSuccess, onFailure, always []string) *EmailUnit {
 	return &EmailUnit{
 		name:          name,
@@ -59,6 +61,7 @@ func NewEmailUnit(name string, to []string, from, subjectPrefix, smtpHost string
 		smtpPassword:  smtpPassword,
 		smtpUseTLS:    smtpUseTLS,
 		includeOutput: includeOutput,
+		limitLines:    limitLines,
 		onSuccess:     onSuccess,
 		onFailure:     onFailure,
 		always:        always,
@@ -121,7 +124,20 @@ func (e *EmailUnit) Run(ctx context.Context) error {
 	if e.includeOutput && e.output != "" {
 		body.WriteString("Output:\n")
 		body.WriteString("-------\n")
-		body.WriteString(e.output)
+
+		// Apply line limiting if configured
+		output := e.output
+		if e.limitLines > 0 {
+			lines := strings.Split(output, "\n")
+			if len(lines) > e.limitLines {
+				// Keep last N lines
+				lines = lines[len(lines)-e.limitLines:]
+				output = strings.Join(lines, "\n")
+				body.WriteString(fmt.Sprintf("(Showing last %d lines of %d total)\n", e.limitLines, len(strings.Split(e.output, "\n"))))
+			}
+		}
+
+		body.WriteString(output)
 		body.WriteString("\n")
 	} else if !e.includeOutput {
 		body.WriteString("(Output not included)\n")

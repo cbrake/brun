@@ -238,6 +238,7 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				cfg.SMTPPassword,
 				smtpUseTLS,
 				includeOutput,
+				cfg.LimitLines,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,

@@ -18,6 +18,8 @@ and this project adheres to
   state, discarding local changes.
 - Git trigger automatically updates submodules recursively when updating
   workspaces.
+- Email units now support `limit_lines` field to limit email output to the last
+  N lines, preventing overwhelming emails from verbose build processes.
 
 ### Changed
 
