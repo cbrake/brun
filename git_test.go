@@ -54,6 +54,8 @@ func TestGitTrigger_Check(t *testing.T) {
 	trigger := NewGitTrigger(
 		"test-git",
 		repoPath,
+		"main",
+		false,
 		state,
 		[]string{"build"},
 		nil,
@@ -177,6 +179,8 @@ func TestGitTrigger_Run(t *testing.T) {
 	trigger := NewGitTrigger(
 		"test-git-run",
 		repoPath,
+		"main",
+		false,
 		state,
 		[]string{"build"},
 		[]string{"error"},
@@ -231,6 +235,7 @@ units:
   - git:
       name: watch-repo
       repository: ` + repoPath + `
+      branch: main
       on_success:
         - build
 `
@@ -311,6 +316,8 @@ func TestGitTrigger_InvalidRepository(t *testing.T) {
 	trigger := NewGitTrigger(
 		"test-invalid",
 		invalidRepo,
+		"main",
+		false,
 		state,
 		nil,
 		nil,

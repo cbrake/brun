@@ -273,10 +273,15 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 			if cfg.Repository == "" {
 				return nil, fmt.Errorf("unit %d: repository is required", i)
 			}
+			if cfg.Branch == "" {
+				return nil, fmt.Errorf("unit %d: branch is required", i)
+			}
 
 			unit := NewGitTrigger(
 				cfg.Name,
 				cfg.Repository,
+				cfg.Branch,
+				cfg.Reset,
 				state,
 				cfg.OnSuccess,
 				cfg.OnFailure,

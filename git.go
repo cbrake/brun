@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os/exec"
 
 	"github.com/go-git/go-git/v5"
 )
@@ -12,6 +13,8 @@ import (
 type GitTrigger struct {
 	name       string
 	repository string
+	branch     string
+	reset      bool
 	state      *State
 	onSuccess  []string
 	onFailure  []string
@@ -22,13 +25,17 @@ type GitTrigger struct {
 type GitConfig struct {
 	UnitConfig `yaml:",inline"`
 	Repository string `yaml:"repository"`
+	Branch     string `yaml:"branch"`
+	Reset      bool   `yaml:"reset"`
 }
 
 // NewGitTrigger creates a new git trigger unit
-func NewGitTrigger(name, repository string, state *State, onSuccess, onFailure, always []string) *GitTrigger {
+func NewGitTrigger(name, repository, branch string, reset bool, state *State, onSuccess, onFailure, always []string) *GitTrigger {
 	return &GitTrigger{
 		name:       name,
 		repository: repository,
+		branch:     branch,
+		reset:      reset,
 		state:      state,
 		onSuccess:  onSuccess,
 		onFailure:  onFailure,
@@ -44,6 +51,79 @@ func (g *GitTrigger) Name() string {
 // Type returns the unit type
 func (g *GitTrigger) Type() string {
 	return "trigger.git"
+}
+
+// isLocalWorkspace checks if the repository path is a local Git workspace
+func (g *GitTrigger) isLocalWorkspace() bool {
+	// Try to open as a local repository
+	_, err := git.PlainOpen(g.repository)
+	return err == nil
+}
+
+// updateWorkspace updates a local Git workspace to the latest commit on the specified branch
+// Uses native git commands for reliability with SSH, submodules, etc.
+func (g *GitTrigger) updateWorkspace(ctx context.Context) error {
+	// Verify repository exists using go-git
+	repo, err := git.PlainOpen(g.repository)
+	if err != nil {
+		return fmt.Errorf("failed to open git repository: %w", err)
+	}
+
+	// Check if repository has remotes
+	remotes, err := repo.Remotes()
+	if err != nil {
+		return fmt.Errorf("failed to get remotes: %w", err)
+	}
+
+	// If no remotes, skip update (local-only repository)
+	if len(remotes) == 0 {
+		return nil
+	}
+
+	// Use native git commands for the update operations
+	log.Printf("Fetching updates for repository %s", g.repository)
+
+	// git fetch origin
+	fetchCmd := exec.CommandContext(ctx, "git", "fetch", "origin")
+	fetchCmd.Dir = g.repository
+	if output, err := fetchCmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to fetch updates: %w\nOutput: %s", err, output)
+	}
+
+	// git checkout <branch>
+	checkoutCmd := exec.CommandContext(ctx, "git", "checkout", g.branch)
+	checkoutCmd.Dir = g.repository
+	if output, err := checkoutCmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to checkout branch: %w\nOutput: %s", err, output)
+	}
+
+	// git reset --hard origin/<branch> (if reset enabled) or git merge origin/<branch>
+	if g.reset {
+		remoteBranch := fmt.Sprintf("origin/%s", g.branch)
+		resetCmd := exec.CommandContext(ctx, "git", "reset", "--hard", remoteBranch)
+		resetCmd.Dir = g.repository
+		if output, err := resetCmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("failed to reset workspace: %w\nOutput: %s", err, output)
+		}
+		log.Printf("Reset workspace to %s", remoteBranch)
+	} else {
+		remoteBranch := fmt.Sprintf("origin/%s", g.branch)
+		mergeCmd := exec.CommandContext(ctx, "git", "merge", remoteBranch)
+		mergeCmd.Dir = g.repository
+		if output, err := mergeCmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("failed to merge updates: %w\nOutput: %s", err, output)
+		}
+	}
+
+	// git submodule update --init --recursive
+	log.Printf("Updating submodules for repository %s", g.repository)
+	submoduleCmd := exec.CommandContext(ctx, "git", "submodule", "update", "--init", "--recursive")
+	submoduleCmd.Dir = g.repository
+	if output, err := submoduleCmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to update submodules: %w\nOutput: %s", err, output)
+	}
+
+	return nil
 }
 
 // getCurrentCommitHash gets the current HEAD commit hash from the repository
@@ -65,6 +145,13 @@ func (g *GitTrigger) getCurrentCommitHash() (string, error) {
 
 // Check returns true if the git repository has new commits since last check
 func (g *GitTrigger) Check(ctx context.Context) (bool, error) {
+	// If this is a local workspace, update it first
+	if g.isLocalWorkspace() {
+		if err := g.updateWorkspace(ctx); err != nil {
+			return false, fmt.Errorf("failed to update workspace: %w", err)
+		}
+	}
+
 	// Get current commit hash
 	currentHash, err := g.getCurrentCommitHash()
 	if err != nil {

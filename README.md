@@ -835,9 +835,15 @@ repository. It monitors the repository's HEAD commit and triggers when new
 commits are detected. This is useful for automatically running builds, tests, or
 deployments when code changes.
 
+If the `repository` field points to a local Git workspace (vs a Repo URL), the
+workspace and submodules are updated to the latest on the specified branch.
+
 **Fields:**
 
 - **repository** (required): Path to the Git repository to monitor
+- **branch** (required): Branch to monitor
+- **reset** (optional): optionally reset the workspace to the state of the repo
+  HEAD (`git reset --hard`)
 
 **Behavior:**
 

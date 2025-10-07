@@ -10,6 +10,15 @@ and this project adheres to
 
 ### Added
 
+- Git trigger now automatically updates local workspaces when monitoring
+  repositories, keeping your workspace in sync with the remote.
+- Git trigger supports `branch` field to specify which branch to monitor and
+  update.
+- Git trigger supports optional `reset` field to force reset workspace to remote
+  state, discarding local changes.
+- Git trigger automatically updates submodules recursively when updating
+  workspaces.
+
 ### Changed
 
 ### Fixed
