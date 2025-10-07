@@ -23,10 +23,9 @@ release:
   prerelease: auto
   extra_files:
     - glob: CHANGELOG.md
-
-# Use the release notes file
-release_notes:
-  file: .release-notes.md
+  # Use the release notes file
+  release_notes:
+    file: .release-notes.md
 builds:
   - main: ./cmd/brun
     id: brun
