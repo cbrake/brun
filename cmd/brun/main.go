@@ -24,6 +24,8 @@ func main() {
 		cmdInstall(args)
 	case "run":
 		cmdRun(args)
+	case "update":
+		cmdUpdate(args)
 	case "version":
 		cmdVersion()
 	default:
@@ -38,6 +40,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "Commands:\n")
 	fmt.Fprintf(os.Stderr, "  run <config-file>       Run brun with the given config file\n")
 	fmt.Fprintf(os.Stderr, "  install                 Install brun as a systemd service\n")
+	fmt.Fprintf(os.Stderr, "  update                  Updates BRun to the latest version\n")
 	fmt.Fprintf(os.Stderr, "  version                 Display version information\n")
 	fmt.Fprintf(os.Stderr, "\n")
 	fmt.Fprintf(os.Stderr, "Run Options:\n")
@@ -174,6 +177,14 @@ func cmdRun(args []string) {
 		}
 		fmt.Println("All units completed successfully")
 	}
+}
+
+func cmdUpdate(args []string) {
+	if err := brun.Update(version); err != nil {
+		fmt.Fprintf(os.Stderr, "Update failed: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Update completed successfully")
 }
 
 func cmdVersion() {

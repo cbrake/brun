@@ -15,8 +15,15 @@ and this project adheres to
 - Run units now support optional `use_pty` configuration field to wrap commands
   with `script` for pseudo-TTY support. Useful for tools like bitbake that
   require a TTY environment.
+- Added `update` command to automatically update BRun to the latest release
+  from GitHub.
 
 ### Changed
+
+### Fixed
+
+- Fixed PTY command execution to properly handle multiline scripts and prevent
+  newline characters from being interpreted literally.
 
 ## [0.0.4] - 2025-10-06
 

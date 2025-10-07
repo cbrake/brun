@@ -169,6 +169,11 @@ otherwise as the user that runs the install.
 
 If a config file does not exist, one is created.
 
+### Updating
+
+After initial installation, the `brun update` command can be used to update to
+the latest release.
+
 ## Usage
 
 ```
@@ -177,6 +182,7 @@ Usage: brun COMMAND [OPTIONS]
 Commands:
   run <config-file>       Run brun with the given config file
   install                 Install brun as a systemd service
+  update                  Updates BRun to the latest version.
 
 Run Options:
   -daemon                 Run in daemon mode (continuous monitoring)
@@ -452,8 +458,8 @@ test pipelines.
 - **shell** (optional): specify shell to use when running command (bash, etc).
   By default, 'sh' is used.
 - **use_pty** (optional): when set to true, wraps the command with `script` to
-  provide a pseudo-TTY. This is useful for tools like bitbake that require a
-  TTY environment. Default is false.
+  provide a pseudo-TTY. This is useful for tools like bitbake that require a TTY
+  environment. Default is false.
 
 **Behavior:**
 
