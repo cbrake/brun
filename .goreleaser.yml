@@ -17,15 +17,11 @@ release:
   github:
     owner: cbrake
     name: brun
-  # Read release notes from the file generated in before hooks
   mode: keep-existing
   draft: false
   prerelease: auto
   extra_files:
     - glob: CHANGELOG.md
-  # Use the release notes file
-  release_notes:
-    file: .release-notes.md
 builds:
   - main: ./cmd/brun
     id: brun

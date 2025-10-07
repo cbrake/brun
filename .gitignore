@@ -2,3 +2,4 @@
 brun_arm64
 error.log
 dist
+.release-notes.md
