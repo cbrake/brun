@@ -15,6 +15,7 @@ func TestRunUnit_Success(t *testing.T) {
 		"",
 		0,
 		"",
+		false,
 		[]string{"next-unit"},
 		[]string{"error-unit"},
 		[]string{"always-unit"},
@@ -56,6 +57,7 @@ func TestRunUnit_Failure(t *testing.T) {
 		"",
 		0,
 		"",
+		false,
 		nil,
 		nil,
 		nil,
@@ -78,6 +80,7 @@ func TestRunUnit_WithDirectory(t *testing.T) {
 		tempDir,
 		0,
 		"",
+		false,
 		nil,
 		nil,
 		nil,
@@ -109,6 +112,7 @@ echo "line 3"
 		tempDir,
 		0,
 		"",
+		false,
 		nil,
 		nil,
 		nil,
@@ -216,6 +220,7 @@ func TestRunUnit_WithTimeout(t *testing.T) {
 		"",
 		1*time.Second,
 		"",
+		false,
 		nil,
 		nil,
 		nil,
@@ -313,6 +318,7 @@ func TestRunUnit_WithShell(t *testing.T) {
 		"",
 		0,
 		"bash",
+		false,
 		nil,
 		nil,
 		nil,
@@ -336,6 +342,7 @@ func TestRunUnit_DefaultShell(t *testing.T) {
 		"",
 		0,
 		"",
+		false,
 		nil,
 		nil,
 		nil,
@@ -386,5 +393,73 @@ units:
 
 	if runUnit.shell != "bash" {
 		t.Errorf("Expected shell 'bash', got '%s'", runUnit.shell)
+	}
+}
+
+func TestRunUnit_WithPTY(t *testing.T) {
+	// Test with PTY enabled
+	unit := NewRunUnit(
+		"test-pty",
+		"echo 'Hello with PTY'",
+		"",
+		0,
+		"bash",
+		true,
+		nil,
+		nil,
+		nil,
+	)
+
+	if !unit.usePTY {
+		t.Error("Expected usePTY to be true")
+	}
+
+	ctx := context.Background()
+	if err := unit.Run(ctx); err != nil {
+		t.Errorf("Expected success, got error: %v", err)
+	}
+}
+
+func TestLoadConfig_WithPTY(t *testing.T) {
+	tempDir := t.TempDir()
+	configFile := filepath.Join(tempDir, "config.yaml")
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	configContent := `config:
+  state_location: ` + stateFile + `
+
+units:
+  - run:
+      name: pty-task
+      script: echo "running with PTY"
+      shell: bash
+      use_pty: true
+`
+
+	if err := os.WriteFile(configFile, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write test config: %v", err)
+	}
+
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	units, err := config.CreateUnits()
+	if err != nil {
+		t.Fatalf("CreateUnits failed: %v", err)
+	}
+
+	if len(units) != 1 {
+		t.Fatalf("Expected 1 unit, got %d", len(units))
+	}
+
+	runUnit, ok := units[0].(*RunUnit)
+	if !ok {
+		t.Fatal("Unit is not a RunUnit")
+	}
+
+	if !runUnit.usePTY {
+		t.Error("Expected usePTY to be true")
 	}
 }

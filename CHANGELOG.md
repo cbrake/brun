@@ -8,6 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Run units now support optional `shell` configuration field to specify which
+  shell to use (bash, sh, etc.). Defaults to 'sh' when not specified.
+- Run units now support optional `use_pty` configuration field to wrap commands
+  with `script` for pseudo-TTY support. Useful for tools like bitbake that
+  require a TTY environment.
+
 ### Changed
 
 ## [0.0.4] - 2025-10-06

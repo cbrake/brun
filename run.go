@@ -16,6 +16,7 @@ type RunConfig struct {
 	Directory  string `yaml:"directory,omitempty"`
 	Timeout    string `yaml:"timeout,omitempty"`
 	Shell      string `yaml:"shell,omitempty"`
+	UsePTY     bool   `yaml:"use_pty,omitempty"`
 }
 
 // RunUnit executes shell scripts/commands
@@ -25,13 +26,14 @@ type RunUnit struct {
 	directory string
 	timeout   time.Duration
 	shell     string
+	usePTY    bool
 	onSuccess []string
 	onFailure []string
 	always    []string
 }
 
 // NewRunUnit creates a new Run unit
-func NewRunUnit(name, script, directory string, timeout time.Duration, shell string, onSuccess, onFailure, always []string) *RunUnit {
+func NewRunUnit(name, script, directory string, timeout time.Duration, shell string, usePTY bool, onSuccess, onFailure, always []string) *RunUnit {
 	// Default to 'sh' if no shell is specified
 	if shell == "" {
 		shell = "sh"
@@ -42,6 +44,7 @@ func NewRunUnit(name, script, directory string, timeout time.Duration, shell str
 		directory: directory,
 		timeout:   timeout,
 		shell:     shell,
+		usePTY:    usePTY,
 		onSuccess: onSuccess,
 		onFailure: onFailure,
 		always:    always,
@@ -71,7 +74,22 @@ func (r *RunUnit) Run(ctx context.Context) error {
 	}
 
 	// Create command to execute script using configured shell
-	cmd := exec.CommandContext(ctx, r.shell, "-c", r.script)
+	var cmd *exec.Cmd
+	if r.usePTY {
+		// Wrap command with 'script' to provide a pseudo-TTY
+		// Build the command as: script -q -e -c "bash -c 'script contents'" /dev/null
+		// We need to pass each argument separately to avoid quote interpretation issues
+		scriptPath, _ := exec.LookPath("script")
+		cmd = &exec.Cmd{
+			Path: scriptPath,
+			Args: []string{"script", "-q", "-e", "-c", r.shell, "-c", r.script, "/dev/null"},
+		}
+		if ctx != nil {
+			cmd = exec.CommandContext(ctx, scriptPath, "-q", "-e", "-c", r.shell, "-c", r.script, "/dev/null")
+		}
+	} else {
+		cmd = exec.CommandContext(ctx, r.shell, "-c", r.script)
+	}
 
 	// Set working directory if specified
 	if r.directory != "" {
@@ -82,6 +100,9 @@ func (r *RunUnit) Run(ctx context.Context) error {
 	// Set up output to go to stdout/stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	// Inherit environment and set TERM to ensure tools expecting shell environment work
+	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
 
 	// Run the command
 	if err := cmd.Run(); err != nil {

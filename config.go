@@ -133,6 +133,7 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				cfg.Directory,
 				timeout,
 				cfg.Shell,
+				cfg.UsePTY,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,

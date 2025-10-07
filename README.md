@@ -451,6 +451,9 @@ test pipelines.
   completion. If the task times out, an error message is logged.
 - **shell** (optional): specify shell to use when running command (bash, etc).
   By default, 'sh' is used.
+- **use_pty** (optional): when set to true, wraps the command with `script` to
+  provide a pseudo-TTY. This is useful for tools like bitbake that require a
+  TTY environment. Default is false.
 
 **Behavior:**
 
@@ -486,6 +489,15 @@ units:
       name: deploy
       script: |
         ./deploy.sh
+
+  - run:
+      name: bitbake-build
+      shell: bash
+      use_pty: true
+      script: |
+        source oe-init-build-env
+        bitbake core-image-minimal
+      timeout: 2h
 ```
 
 ### Log Unit
