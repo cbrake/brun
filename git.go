@@ -5,20 +5,24 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 )
 
 // GitTrigger is a trigger unit that fires when git repository changes are detected
 type GitTrigger struct {
-	name       string
-	repository string
-	branch     string
-	reset      bool
-	state      *State
-	onSuccess  []string
-	onFailure  []string
-	always     []string
+	name          string
+	repository    string
+	branch        string
+	reset         bool
+	pollInterval  time.Duration
+	debug         bool
+	state         *State
+	lastCheckTime time.Time
+	onSuccess     []string
+	onFailure     []string
+	always        []string
 }
 
 // GitConfig represents the configuration for a git trigger
@@ -27,19 +31,23 @@ type GitConfig struct {
 	Repository string `yaml:"repository"`
 	Branch     string `yaml:"branch"`
 	Reset      bool   `yaml:"reset"`
+	Poll       string `yaml:"poll"`
+	Debug      bool   `yaml:"debug"`
 }
 
 // NewGitTrigger creates a new git trigger unit
-func NewGitTrigger(name, repository, branch string, reset bool, state *State, onSuccess, onFailure, always []string) *GitTrigger {
+func NewGitTrigger(name, repository, branch string, reset bool, pollInterval time.Duration, debug bool, state *State, onSuccess, onFailure, always []string) *GitTrigger {
 	return &GitTrigger{
-		name:       name,
-		repository: repository,
-		branch:     branch,
-		reset:      reset,
-		state:      state,
-		onSuccess:  onSuccess,
-		onFailure:  onFailure,
-		always:     always,
+		name:         name,
+		repository:   repository,
+		branch:       branch,
+		reset:        reset,
+		pollInterval: pollInterval,
+		debug:        debug,
+		state:        state,
+		onSuccess:    onSuccess,
+		onFailure:    onFailure,
+		always:       always,
 	}
 }
 
@@ -81,7 +89,9 @@ func (g *GitTrigger) updateWorkspace(ctx context.Context) error {
 	}
 
 	// Use native git commands for the update operations
-	log.Printf("Fetching updates for repository %s", g.repository)
+	if g.debug {
+		log.Printf("Fetching updates for repository %s", g.repository)
+	}
 
 	// git fetch origin
 	fetchCmd := exec.CommandContext(ctx, "git", "fetch", "origin")
@@ -105,7 +115,9 @@ func (g *GitTrigger) updateWorkspace(ctx context.Context) error {
 		if output, err := resetCmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("failed to reset workspace: %w\nOutput: %s", err, output)
 		}
-		log.Printf("Reset workspace to %s", remoteBranch)
+		if g.debug {
+			log.Printf("Reset workspace to %s", remoteBranch)
+		}
 	} else {
 		remoteBranch := fmt.Sprintf("origin/%s", g.branch)
 		mergeCmd := exec.CommandContext(ctx, "git", "merge", remoteBranch)
@@ -116,7 +128,9 @@ func (g *GitTrigger) updateWorkspace(ctx context.Context) error {
 	}
 
 	// git submodule update --init --recursive
-	log.Printf("Updating submodules for repository %s", g.repository)
+	if g.debug {
+		log.Printf("Updating submodules for repository %s", g.repository)
+	}
 	submoduleCmd := exec.CommandContext(ctx, "git", "submodule", "update", "--init", "--recursive")
 	submoduleCmd.Dir = g.repository
 	if output, err := submoduleCmd.CombinedOutput(); err != nil {
@@ -145,6 +159,24 @@ func (g *GitTrigger) getCurrentCommitHash() (string, error) {
 
 // Check returns true if the git repository has new commits since last check
 func (g *GitTrigger) Check(ctx context.Context) (bool, error) {
+	// If poll interval is 0, don't automatically check - wait for manual trigger
+	if g.pollInterval == 0 {
+		return false, nil
+	}
+
+	// Check if enough time has passed since last check
+	now := time.Now()
+	if !g.lastCheckTime.IsZero() {
+		timeSinceLastCheck := now.Sub(g.lastCheckTime)
+		if timeSinceLastCheck < g.pollInterval {
+			// Not enough time has passed, skip check
+			return false, nil
+		}
+	}
+
+	// Update last check time
+	g.lastCheckTime = now
+
 	// If this is a local workspace, update it first
 	if g.isLocalWorkspace() {
 		if err := g.updateWorkspace(ctx); err != nil {

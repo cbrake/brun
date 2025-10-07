@@ -124,6 +124,8 @@ units:
   - git:
       name: watch-repo
       repository: /home/user/project
+      branch: main
+      poll: 2m
       on_success:
         - build
 
@@ -154,7 +156,7 @@ To install, download the
 
 Example install on Linux x86:
 
-`wget -O /usr/local/bin/brun https://github.com/cbrake/brun/releases/download/v0.0.6/brun-v0.0.6-linux-x86_64 && chmod 755 /usr/local/bin/brun`
+`wget -O /usr/local/bin/brun https://github.com/cbrake/brun/releases/download/v0.0.7/brun-v0.0.7-linux-x86_64 && chmod 755 /usr/local/bin/brun`
 
 If you would like to install a systemd unit to run brun automatically, then run:
 
@@ -844,6 +846,13 @@ workspace and submodules are updated to the latest on the specified branch.
 - **branch** (required): Branch to monitor
 - **reset** (optional): optionally reset the workspace to the state of the repo
   HEAD (`git reset --hard`)
+- **poll** (optional): polling interval for checking repository updates (e.g.,
+  "2m", "30s", "1h"). When set, the git unit actively checks for updates at the
+  specified interval in daemon mode. When omitted or set to empty string, the
+  unit waits to be manually triggered. Examples: "2m" (2 minutes), "30s" (30
+  seconds), "5m" (5 minutes).
+- **debug** (optional): when true, logs detailed git operation messages (fetch,
+  reset, submodule updates). Defaults to false.
 
 **Behavior:**
 
@@ -877,6 +886,9 @@ units:
   - git:
       name: auto-build
       repository: /home/user/project
+      branch: main
+      poll: 2m # Check for updates every 2 minutes
+      debug: false # Suppress verbose git operation logs
       on_success:
         - build
 

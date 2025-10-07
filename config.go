@@ -278,11 +278,23 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 				return nil, fmt.Errorf("unit %d: branch is required", i)
 			}
 
+			// Parse poll interval if specified
+			var pollInterval time.Duration
+			if cfg.Poll != "" {
+				var err error
+				pollInterval, err = time.ParseDuration(cfg.Poll)
+				if err != nil {
+					return nil, fmt.Errorf("unit %d (%s): invalid poll interval format '%s': %w", i, cfg.Name, cfg.Poll, err)
+				}
+			}
+
 			unit := NewGitTrigger(
 				cfg.Name,
 				cfg.Repository,
 				cfg.Branch,
 				cfg.Reset,
+				pollInterval,
+				cfg.Debug,
 				state,
 				cfg.OnSuccess,
 				cfg.OnFailure,

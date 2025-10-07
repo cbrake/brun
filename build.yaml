@@ -11,8 +11,7 @@ units:
       name: run-tests
       script: |
         echo "Running tests..."
-        go test -v
-        echo "Tests passed"
+        go test
       on_success:
         - build-brun
 

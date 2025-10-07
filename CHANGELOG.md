@@ -8,11 +8,22 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.7] - 2025-10-07
+
 ### Added
+
+- Version information now displays when running brun, helping you track which
+  version you're using.
+- Git trigger now supports `poll` field to set a custom polling interval (e.g.,
+  "2m", "30s", "5m"), giving you control over how often repositories are checked
+  for updates.
+- Git trigger now supports `debug` field to enable detailed logging of git
+  operations (fetch, reset, submodule updates) when troubleshooting.
 
 ### Changed
 
-### Fixed
+- Git trigger polling messages are now hidden by default, reducing log noise
+  during continuous monitoring.
 
 ## [0.0.6] - 2025-10-07
 
@@ -44,8 +55,8 @@ and this project adheres to
 - Run units now support optional `use_pty` configuration field to wrap commands
   with `script` for pseudo-TTY support. Useful for tools like bitbake that
   require a TTY environment.
-- Added `update` command to automatically update BRun to the latest release
-  from GitHub.
+- Added `update` command to automatically update BRun to the latest release from
+  GitHub.
 
 ### Fixed
 

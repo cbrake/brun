@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -55,7 +56,9 @@ func TestGitTrigger_Check(t *testing.T) {
 		"test-git",
 		repoPath,
 		"main",
-		false,
+		false,      // reset
+		time.Second, // poll interval (1 second for testing)
+		false,      // debug
 		state,
 		[]string{"build"},
 		nil,
@@ -100,6 +103,9 @@ func TestGitTrigger_Check(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to commit: %v", err)
 	}
+
+	// Wait for poll interval to pass
+	time.Sleep(1100 * time.Millisecond)
 
 	// Third check should trigger (new commit)
 	shouldTrigger, err = trigger.Check(ctx)
@@ -180,7 +186,9 @@ func TestGitTrigger_Run(t *testing.T) {
 		"test-git-run",
 		repoPath,
 		"main",
-		false,
+		false,           // reset
+		2*time.Minute,   // poll interval
+		false,           // debug
 		state,
 		[]string{"build"},
 		[]string{"error"},
@@ -317,7 +325,9 @@ func TestGitTrigger_InvalidRepository(t *testing.T) {
 		"test-invalid",
 		invalidRepo,
 		"main",
-		false,
+		false,         // reset
+		2*time.Minute, // poll interval
+		false,         // debug
 		state,
 		nil,
 		nil,
