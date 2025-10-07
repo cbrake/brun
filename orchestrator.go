@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"time"
 )
 
@@ -15,6 +16,14 @@ type UnitResult struct {
 	Unit   Unit
 	Error  error
 	Output string // Captured stdout/stderr
+}
+
+// ansiEscapeRegex matches ANSI escape sequences including cursor movement and color codes
+var ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]|\x1b\][0-9];[^\x07]*\x07`)
+
+// stripANSI removes ANSI escape sequences from a string
+func stripANSI(s string) string {
+	return ansiEscapeRegex.ReplaceAllString(s, "")
 }
 
 // Orchestrator manages unit execution and triggering
@@ -141,7 +150,9 @@ func (o *Orchestrator) executeUnit(ctx context.Context, unit Unit) error {
 	os.Stdout = oldStdout
 	os.Stderr = oldStderr
 
-	result.Output = outputBuf.String()
+	// Strip ANSI escape sequences from captured output for cleaner logs/emails
+	// while preserving them in the terminal display
+	result.Output = stripANSI(outputBuf.String())
 
 	// Store result
 	o.results[unit.Name()] = result
@@ -331,7 +342,9 @@ func (o *Orchestrator) executeUnitNoTriggers(ctx context.Context, unit Unit) err
 	os.Stdout = oldStdout
 	os.Stderr = oldStderr
 
-	result.Output = outputBuf.String()
+	// Strip ANSI escape sequences from captured output for cleaner logs/emails
+	// while preserving them in the terminal display
+	result.Output = stripANSI(outputBuf.String())
 
 	// Store result
 	o.results[unit.Name()] = result

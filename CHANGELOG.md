@@ -23,6 +23,10 @@ and this project adheres to
 
 ### Fixed
 
+- Output captured from run units now strips ANSI escape sequences (colors,
+  cursor movements) from emails and logs while preserving them in terminal
+  display, making automated build logs much more readable.
+
 ## [0.0.5] - 2025-10-07
 
 ### Added
