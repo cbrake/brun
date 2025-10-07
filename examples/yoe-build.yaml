@@ -14,9 +14,9 @@ units:
       on_success:
         - update-yoe
 
-  # check if there are any updates and only build if there are
-  # note, this unit updates the git workspace to the HEAD of
-  # the master branch.
+  # check if there are any updates and only build if there are updates.
+  # This unit updates the git workspace to the HEAD of the master
+  # branch.
   - git:
       name: update-yoe
       repository: /scratch4/yoe/yoe-distro
