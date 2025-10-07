@@ -182,7 +182,8 @@ Usage: brun COMMAND [OPTIONS]
 Commands:
   run <config-file>       Run brun with the given config file
   install                 Install brun as a systemd service
-  update                  Updates BRun to the latest version.
+  update                  Updates BRun to the latest version
+  version                 Display version information
 
 Run Options:
   -daemon                 Run in daemon mode (continuous monitoring)
