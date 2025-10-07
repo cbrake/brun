@@ -258,6 +258,20 @@ func (o *Orchestrator) RunSingleUnit(ctx context.Context, unitName string, runTr
 	o.results = make(map[string]*UnitResult)
 
 	if runTriggers {
+		// For trigger units, check if the trigger condition is met first
+		if triggerUnit, ok := unit.(TriggerUnit); ok {
+			shouldTrigger, err := triggerUnit.Check(ctx)
+			if err != nil {
+				log.Printf("Error checking trigger '%s': %v", unitName, err)
+				return err
+			}
+			if !shouldTrigger {
+				log.Printf("Trigger '%s' condition not met, skipping execution", unitName)
+				return nil
+			}
+			log.Printf("Trigger '%s' condition met, executing...", unitName)
+		}
+
 		// Execute unit with triggers (normal execution)
 		if err := o.executeUnit(ctx, unit); err != nil {
 			log.Printf("Unit '%s' failed: %v", unitName, err)
