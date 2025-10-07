@@ -81,6 +81,8 @@ func cmdInstall(args []string) {
 }
 
 func cmdRun(args []string) {
+	fmt.Printf("BRun version %s\n", version)
+
 	if len(args) < 1 {
 		fmt.Fprintf(os.Stderr, "Usage: %s run <config-file> [-daemon] [-unit <unit name>] [-trigger <unit name>]\n", os.Args[0])
 		os.Exit(1)
