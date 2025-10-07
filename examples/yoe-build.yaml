@@ -22,6 +22,8 @@ units:
       repository: /scratch4/yoe/yoe-distro
       branch: master
       reset: true
+      # disable polling as this is triggered by cron
+      poll: 0
       on_failure:
         - email
       on_success:
