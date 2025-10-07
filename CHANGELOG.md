@@ -10,6 +10,14 @@ and this project adheres to
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.0.6] - 2025-10-07
+
+### Added
+
 - Git trigger now automatically updates local workspaces when monitoring
   repositories, keeping your workspace in sync with the remote.
 - Git trigger supports `branch` field to specify which branch to monitor and
@@ -20,8 +28,6 @@ and this project adheres to
   workspaces.
 - Email units now support `limit_lines` field to limit email output to the last
   N lines, preventing overwhelming emails from verbose build processes.
-
-### Changed
 
 ### Fixed
 
