@@ -1,0 +1,3 @@
+- update the changelog with the version number and the current date and commit
+- tag the repo with the next version number
+- run `goreleaser release --clean`
