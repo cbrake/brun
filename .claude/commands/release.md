@@ -3,4 +3,4 @@
   current version
 - git commit, push
 - tag the repo with the next version number
-- run `goreleaser release --clean`
+- run `goreleaser release --clean --release-notes .release-notes.md`
