@@ -56,9 +56,9 @@ func TestGitTrigger_Check(t *testing.T) {
 		"test-git",
 		repoPath,
 		"main",
-		false,      // reset
+		false,       // reset
 		time.Second, // poll interval (1 second for testing)
-		false,      // debug
+		false,       // debug
 		state,
 		[]string{"build"},
 		nil,
@@ -186,9 +186,9 @@ func TestGitTrigger_Run(t *testing.T) {
 		"test-git-run",
 		repoPath,
 		"main",
-		false,           // reset
-		2*time.Minute,   // poll interval
-		false,           // debug
+		false,         // reset
+		2*time.Minute, // poll interval
+		false,         // debug
 		state,
 		[]string{"build"},
 		[]string{"error"},
