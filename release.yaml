@@ -9,5 +9,4 @@ units:
   - run:
       name: release
       script: |
-        goreleaser release --clean --release-notes .goreleaser.yaml
-      
+        goreleaser release --clean --release-notes .release-notes.md
