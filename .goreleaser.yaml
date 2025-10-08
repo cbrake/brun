@@ -39,10 +39,10 @@ archives:
   - formats: [tar.gz]
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
-      {{ .ProjectName }}_
-      {{- .Tag }}_
+      {{ .ProjectName }}-
+      {{- .Tag }}-
       {{- if eq .Os "darwin" }}Macos
-      {{- else }}{{ title .Os }}{{ end }}_
+      {{- else }}{{ title .Os }}{{ end }}-
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if and (eq .Arch "arm64") (eq .Os "linux") }}aarch64
       {{- else }}{{ .Arch }}{{ end }}

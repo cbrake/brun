@@ -161,7 +161,7 @@ Copy and paste the following into your terminal:
 ```
 export VER=0.0.8
 export ARCH=$(uname -m)
-export ARCHIVE=brun-v${VER}-linux-${ARCH}.tar.gz
+export ARCHIVE=brun-v${VER}-Linux-${ARCH}.tar.gz
 wget https://github.com/cbrake/brun/releases/download/v${VER}/${ARCHIVE}
 tar -xzf ${ARCHIVE} -C /usr/local/bin brun
 ```
