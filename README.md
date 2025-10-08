@@ -28,7 +28,7 @@ a single binary and no dependencies.
 **Things might do with this**
 
 - Reboot cycle test for embedded systems.
-- Yocto builds on your powerful workstation.
+- Nightly Yocto builds on your powerful workstation.
 - Run admin tasks like backups.
 - Monitor the `/etc` directory a server for changes.
 - Implemented a watchdog that reboots the system under certain conditions.
