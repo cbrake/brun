@@ -5,17 +5,21 @@
 # running Embedded Linux).
 
 config:
-  state_location: /var/lib/brun/state.yaml
+  state_location: /root/brun-state.yaml
 
 units:
+  # the boot trigger is not working reliably on an AGX Orin board, so
+  # leave it for debugging, but the main logic is currently
+  # run with a start trigger.
   - boot:
       name: boot-trigger
       always:
-        - boot-counter
+        - counter
   - start:
       name: start-trigger
-      on_success:
+      always:
         - check-nvme
+        - counter
   - run:
       name: check-nvme
       script: |
@@ -26,6 +30,8 @@ units:
       on_failure:
         - log-error
         - error-counter
+      on_success:
+        - counter
       always:
         - reboot
   - log:
@@ -34,8 +40,9 @@ units:
   - count:
       name: error-counter
   - count:
-      name: boot-counter
+      name: counter
   - reboot:
       name: reboot
       # give us time to log in and stop the reboot
       delay: 20
+
