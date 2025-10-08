@@ -161,12 +161,18 @@ Copy and paste the following into your terminal:
 ```
 export VER=0.0.8
 export ARCH=$(uname -m)
-# Convert aarch64 to arm64 to match release archive names
+# Convert aarch64 to arm64 to match release binary names
 [ "$ARCH" = "aarch64" ] && ARCH="arm64"
-export ARCHIVE=brun-v${VER}-Linux-${ARCH}.tar.gz
-wget https://github.com/cbrake/brun/releases/download/v${VER}/${ARCHIVE}
-tar -xzf ${ARCHIVE} -C /usr/local/bin brun
-rm ${ARCHIVE}
+export BINARY=brun-v${VER}-Linux-${ARCH}
+wget https://github.com/cbrake/brun/releases/download/v${VER}/${BINARY}
+# Install to ~/.local/bin for user, /usr/local/bin for root
+if [ "$(id -u)" -eq 0 ]; then
+  install -m 755 ${BINARY} /usr/local/bin/brun
+else
+  mkdir -p ~/.local/bin
+  install -m 755 ${BINARY} ~/.local/bin/brun
+fi
+rm ${BINARY}
 ```
 
 ### Autostart with systemd

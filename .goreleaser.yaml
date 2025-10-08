@@ -36,8 +36,7 @@ builds:
         goarch: arm
 
 archives:
-  - formats: [tar.gz]
-    # this name template makes the OS and Arch compatible with the results of `uname`.
+  - formats: ['binary']
     name_template: >-
       {{ .ProjectName }}-
       {{- .Tag }}-
@@ -46,10 +45,6 @@ archives:
       {{- if eq .Arch "amd64" }}x86_64
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
-    format_overrides:
-      - goos: windows
-        formats: [zip]
 
 changelog:
   sort: asc
