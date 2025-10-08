@@ -57,14 +57,9 @@ func (c *CronTrigger) Check(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to parse cron schedule '%s': %w", c.schedule, err)
 	}
 
-	// Load state
-	if err := c.state.Load(); err != nil {
-		return false, fmt.Errorf("failed to load state: %w", err)
-	}
-
 	now := time.Now()
 
-	// Get last execution time from state
+	// Get last execution time from state (state is already loaded at startup)
 	lastExecStr, ok := c.state.GetString(c.name, "last_execution")
 	if !ok {
 		// No previous execution, check if we should trigger now
@@ -121,15 +116,8 @@ func (c *CronTrigger) Always() []string {
 }
 
 // Run executes the trigger unit
+// Note: Check() has already been called by the orchestrator before Run() is invoked
 func (c *CronTrigger) Run(ctx context.Context) error {
-	triggered, err := c.Check(ctx)
-	if err != nil {
-		return err
-	}
-
-	if triggered {
-		log.Printf("Cron trigger '%s' activated (schedule: %s)", c.name, c.schedule)
-	}
-
+	log.Printf("Cron trigger '%s' activated (schedule: %s)", c.name, c.schedule)
 	return nil
 }

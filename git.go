@@ -190,12 +190,7 @@ func (g *GitTrigger) Check(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to check git repository: %w", err)
 	}
 
-	// Load state
-	if err := g.state.Load(); err != nil {
-		return false, fmt.Errorf("failed to load state: %w", err)
-	}
-
-	// Get last commit hash from state
+	// Get last commit hash from state (state is already loaded at startup)
 	lastHash, ok := g.state.GetString(g.name, "last_commit_hash")
 	if !ok {
 		// No previous commit hash, this is the first run
@@ -234,21 +229,15 @@ func (g *GitTrigger) Always() []string {
 }
 
 // Run executes the trigger unit
+// Note: Check() has already been called by the orchestrator before Run() is invoked
 func (g *GitTrigger) Run(ctx context.Context) error {
-	triggered, err := g.Check(ctx)
-	if err != nil {
-		return err
+	// Get current commit hash for logging
+	currentHash, _ := g.getCurrentCommitHash()
+	shortHash := currentHash
+	if len(shortHash) > 7 {
+		shortHash = shortHash[:7]
 	}
-
-	if triggered {
-		// Get current commit hash for logging
-		currentHash, _ := g.getCurrentCommitHash()
-		shortHash := currentHash
-		if len(shortHash) > 7 {
-			shortHash = shortHash[:7]
-		}
-		log.Printf("Git trigger '%s' activated (commit: %s)", g.name, shortHash)
-	}
+	log.Printf("Git trigger '%s' activated (commit: %s)", g.name, shortHash)
 
 	return nil
 }

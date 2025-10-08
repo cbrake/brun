@@ -51,12 +51,7 @@ func (c *CountUnit) SetTriggeringUnit(unitName string) {
 func (c *CountUnit) Run(ctx context.Context) error {
 	log.Printf("Running count unit '%s'", c.name)
 
-	// Load state
-	if err := c.state.Load(); err != nil {
-		return fmt.Errorf("failed to load state: %w", err)
-	}
-
-	// Determine the triggering unit name
+	// Determine the triggering unit name (state is already loaded at startup)
 	unitName := c.triggeringUnit
 	if unitName == "" {
 		unitName = "unknown"

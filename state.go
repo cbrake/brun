@@ -45,8 +45,9 @@ func (s *State) Load() error {
 // Save writes the state file to disk
 func (s *State) Save() error {
 	// Ensure directory exists
-	dir := s.filePath[:strings.LastIndex(s.filePath, "/")]
-	if dir != "" {
+	lastSlash := strings.LastIndex(s.filePath, "/")
+	if lastSlash > 0 {
+		dir := s.filePath[:lastSlash]
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("failed to create state directory: %w", err)
 		}

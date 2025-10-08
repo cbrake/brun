@@ -8,6 +8,16 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- State file can now be specified without a directory path (e.g., `state.yaml`),
+  eliminating crashes when using simple filenames.
+- Boot counters and other state-dependent units now work more reliably by loading
+  state once at startup instead of repeatedly during execution, preventing race
+  conditions and improving performance.
+- Trigger units now execute more efficiently by avoiding redundant condition
+  checks, improving overall system responsiveness.
+
 ## [0.0.7] - 2025-10-07
 
 ### Added

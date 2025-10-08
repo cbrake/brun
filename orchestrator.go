@@ -100,7 +100,8 @@ func (o *Orchestrator) checkAndExecuteTriggers(ctx context.Context, isStartup bo
 
 			if shouldTrigger {
 				log.Printf("Trigger '%s' activated", unit.Name())
-				if err := o.executeUnit(ctx, unit); err != nil {
+				// Start with the unit itself in the call stack
+				if err := o.executeUnit(ctx, unit, []string{unit.Name()}); err != nil {
 					log.Printf("Trigger '%s' failed: %v", unit.Name(), err)
 				}
 			}
@@ -109,7 +110,8 @@ func (o *Orchestrator) checkAndExecuteTriggers(ctx context.Context, isStartup bo
 }
 
 // executeUnit runs a single unit and processes its triggers
-func (o *Orchestrator) executeUnit(ctx context.Context, unit Unit) error {
+// callStack tracks units in the current execution path to detect circular dependencies
+func (o *Orchestrator) executeUnit(ctx context.Context, unit Unit, callStack []string) error {
 	result := &UnitResult{
 		Unit: unit,
 	}
@@ -158,14 +160,15 @@ func (o *Orchestrator) executeUnit(ctx context.Context, unit Unit) error {
 	o.results[unit.Name()] = result
 
 	// Process triggers for all units (not just TriggerUnits)
-	o.processTriggers(ctx, unit, err, result.Output)
+	o.processTriggers(ctx, unit, err, result.Output, callStack)
 
 	return err
 }
 
 // processTriggers handles on_success, on_failure, and always triggers
 // This works for both TriggerUnit and regular Unit types
-func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr error, output string) {
+// callStack tracks units in the current execution path to detect circular dependencies
+func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr error, output string, callStack []string) {
 	var toTrigger []string
 
 	// Check if this unit has trigger capabilities (on_success, on_failure, always)
@@ -241,14 +244,25 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 			emailUnit.SetTriggerError(execErr)
 		}
 
-		// Check if already executed in this trigger chain (prevents circular dependencies)
-		if _, executed := o.results[unitName]; executed {
-			log.Printf("Unit '%s' already executed in this chain, skipping to prevent circular dependency", unitName)
+		// Check if this unit is already in the current call stack (circular dependency)
+		inCallStack := false
+		for _, stackUnit := range callStack {
+			if stackUnit == unitName {
+				inCallStack = true
+				break
+			}
+		}
+
+		if inCallStack {
+			log.Printf("Unit '%s' already in call stack, skipping to prevent circular dependency", unitName)
 			continue
 		}
 
+		// Add current unit to call stack for downstream execution
+		newCallStack := append(callStack, unitName)
+
 		log.Printf("Triggering unit '%s'", unitName)
-		if err := o.executeUnit(ctx, targetUnit); err != nil {
+		if err := o.executeUnit(ctx, targetUnit, newCallStack); err != nil {
 			log.Printf("Triggered unit '%s' failed: %v", unitName, err)
 		}
 	}
@@ -284,7 +298,8 @@ func (o *Orchestrator) RunSingleUnit(ctx context.Context, unitName string, runTr
 		}
 
 		// Execute unit with triggers (normal execution)
-		if err := o.executeUnit(ctx, unit); err != nil {
+		// Start with the unit itself in the call stack
+		if err := o.executeUnit(ctx, unit, []string{unitName}); err != nil {
 			log.Printf("Unit '%s' failed: %v", unitName, err)
 			return err
 		}

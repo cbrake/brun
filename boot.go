@@ -50,12 +50,7 @@ func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to get boot time: %w", err)
 	}
 
-	// Load state
-	if err := s.state.Load(); err != nil {
-		return false, fmt.Errorf("failed to load state: %w", err)
-	}
-
-	// Get last boot time from state
+	// Get last boot time from state (state is already loaded at startup)
 	lastBootTimeStr, ok := s.state.GetString(s.name, "last_boot_time")
 	if !ok {
 		// No previous boot time, this is the first run
@@ -125,26 +120,17 @@ func (s *BootTrigger) Always() []string {
 }
 
 // Run executes the trigger unit
+// Note: Check() has already been called by the orchestrator before Run() is invoked
 func (s *BootTrigger) Run(ctx context.Context) error {
-	triggered, err := s.Check(ctx)
-	if err != nil {
-		return err
-	}
-
-	if triggered {
-		// Get boot count from state
-		bootCount := 1
-		if countVal, ok := s.state.Get(s.name, "boot_count"); ok {
-			if count, ok := countVal.(int); ok {
-				bootCount = count
-			}
+	// Get boot count from state
+	bootCount := 1
+	if countVal, ok := s.state.Get(s.name, "boot_count"); ok {
+		if count, ok := countVal.(int); ok {
+			bootCount = count
 		}
-
-		fmt.Printf("Boot trigger '%s' activated (boot count: %d)\n", s.name, bootCount)
-		// In a full implementation, this would trigger the downstream units
-		// For now, we just report the trigger
 	}
 
+	fmt.Printf("Boot trigger '%s' activated (boot count: %d)\n", s.name, bootCount)
 	return nil
 }
 

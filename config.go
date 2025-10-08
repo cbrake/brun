@@ -58,6 +58,11 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 	// Create shared state manager
 	state := NewState(c.ConfigBlock.StateLocation)
 
+	// Load state once at startup - units should not call Load() individually
+	if err := state.Load(); err != nil {
+		return nil, fmt.Errorf("failed to load state: %w", err)
+	}
+
 	var units []Unit
 
 	for i, wrapper := range c.Units {

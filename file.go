@@ -122,15 +122,10 @@ func (f *FileTrigger) Check(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to get current files state: %w", err)
 	}
 
-	// Load state
-	if err := f.state.Load(); err != nil {
-		return false, fmt.Errorf("failed to load state: %w", err)
-	}
-
 	// Convert current state to string
 	currentStateStr := f.filesStateToString(currentState)
 
-	// Get last state from state file
+	// Get last state from state file (state is already loaded at startup)
 	lastStateStr, ok := f.state.GetString(f.name, "files_state")
 	if !ok {
 		// No previous state, this is the first run
@@ -168,18 +163,11 @@ func (f *FileTrigger) Always() []string {
 }
 
 // Run executes the trigger unit
+// Note: Check() has already been called by the orchestrator before Run() is invoked
 func (f *FileTrigger) Run(ctx context.Context) error {
-	triggered, err := f.Check(ctx)
-	if err != nil {
-		return err
-	}
-
-	if triggered {
-		// Get current files for logging
-		currentState, _ := f.getFilesState()
-		fileCount := len(currentState)
-		log.Printf("File trigger '%s' activated (%d file(s) matching '%s')", f.name, fileCount, f.pattern)
-	}
-
+	// Get current files for logging
+	currentState, _ := f.getFilesState()
+	fileCount := len(currentState)
+	log.Printf("File trigger '%s' activated (%d file(s) matching '%s')", f.name, fileCount, f.pattern)
 	return nil
 }
