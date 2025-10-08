@@ -41,7 +41,8 @@ archives:
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
-      {{- title .Os }}_
+      {{- if eq .Os "darwin" }}Macos
+      {{- else }}{{ title .Os }}{{ end }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if and (eq .Arch "arm64") (eq .Os "linux") }}aarch64
       {{- else }}{{ .Arch }}{{ end }}
