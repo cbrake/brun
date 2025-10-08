@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.9] - 2025-10-08
+
 ### Added
 
 - Graceful shutdown now waits for active units to complete when you press Ctrl+C
