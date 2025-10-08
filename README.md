@@ -164,7 +164,10 @@ export ARCH=$(uname -m)
 export ARCHIVE=brun-v${VER}-Linux-${ARCH}.tar.gz
 wget https://github.com/cbrake/brun/releases/download/v${VER}/${ARCHIVE}
 tar -xzf ${ARCHIVE} -C /usr/local/bin brun
+rm ${ARCHIVE}
 ```
+
+### Autostart with systemd
 
 If you would like to install a systemd unit to run brun automatically, then run:
 
