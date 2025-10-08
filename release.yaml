@@ -1,0 +1,13 @@
+config:
+  state_location: state.yaml
+
+units:
+  - start:
+      name: start
+      always:
+        - release
+  - run:
+      name: release
+      script: |
+        goreleaser release --clean --release-notes .goreleaser.yaml
+      
