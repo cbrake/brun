@@ -154,9 +154,17 @@ units:
 To install, download the
 [latest release](https://github.com/cbrake/brun/releases) binary.
 
-Example install on Linux x86:
+### Example install on Linux:
 
-`wget -O /usr/local/bin/brun https://github.com/cbrake/brun/releases/download/v0.0.7/brun-v0.0.7-linux-x86_64 && chmod 755 /usr/local/bin/brun`
+Copy and paste the following into your terminal:
+
+```
+export VER=0.0.8
+export ARCH=$(uname -m)
+export ARCHIVE=brun-v${VER}-linux-${ARCH}.tar.gz
+wget https://github.com/cbrake/brun/releases/download/v${VER}/${ARCHIVE}
+tar -xzf ${ARCHIVE} -C /usr/local/bin brun
+```
 
 If you would like to install a systemd unit to run brun automatically, then run:
 
