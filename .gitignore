@@ -3,3 +3,5 @@ brun_arm64
 error.log
 dist
 .release-notes.md
+# Added by goreleaser init:
+dist/
