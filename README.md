@@ -238,52 +238,86 @@ an infinite loop.
 
 **How it works:**
 
-- The orchestrator maintains a results map that tracks which units have executed
-  in the current trigger cycle
-- Before executing a unit, the orchestrator checks if it has already run in this
-  cycle
-- If a unit has already executed, it is skipped to prevent circular dependencies
-- At the start of each trigger cycle (every 10 seconds in daemon mode), the
-  results map is cleared, allowing units to run again in the next cycle
+- The orchestrator tracks the current execution path (call stack) as units
+  trigger each other
+- Before executing a unit, the orchestrator checks if it's already in the
+  current call stack
+- If a unit is already in the call stack, it is skipped to prevent circular
+  dependencies
+- Units can be triggered multiple times in the same execution as long as they're
+  not in a circular loop
 
 This approach allows:
 
-- **Periodic triggers to work correctly**: Units can be triggered multiple times
-  across different cycles (e.g., cron triggers firing every minute)
-- **Circular dependency protection**: Within a single trigger cycle, units
-  cannot trigger each other recursively
+- **Flexible trigger chains**: The same unit (like an email or log unit) can be
+  triggered multiple times from different branches in a single execution
+- **Circular dependency protection**: Units cannot trigger themselves directly
+  or indirectly through other units in the same execution path
 
-**Example:**
+**Example - Circular dependency prevented:**
 
 ```yaml
 units:
-  - cron:
-      name: every-minute
-      schedule: "* * * * *"
+  - start:
+      name: start-trigger
       on_success:
         - task-a
 
   - run:
       name: task-a
       script: echo "Task A"
-      always:
+      on_success:
         - task-b
 
   - run:
       name: task-b
       script: echo "Task B"
-      always:
+      on_success:
         - task-a # This would create a circular dependency
 ```
 
 In this example:
 
-- The cron trigger fires every minute and triggers `task-a`
+- `start-trigger` triggers `task-a`
 - `task-a` triggers `task-b`
-- `task-b` attempts to trigger `task-a`, but it's already in the results map
+- `task-b` attempts to trigger `task-a`, but it's already in the call stack
 - The circular trigger is prevented, and the log shows: "Unit 'task-a' already
-  executed in this chain, skipping to prevent circular dependency"
-- In the next minute, the results map is cleared and the cycle can run again
+  in call stack, skipping to prevent circular dependency"
+
+**Example - Multiple triggers allowed:**
+
+```yaml
+units:
+  - start:
+      name: start-trigger
+      on_success:
+        - build-frontend
+        - build-backend
+
+  - run:
+      name: build-frontend
+      script: npm run build
+      always:
+        - notify-team
+
+  - run:
+      name: build-backend
+      script: go build ./...
+      always:
+        - notify-team
+
+  - email:
+      name: notify-team
+      to:
+        - team@example.com
+      # ... email config ...
+```
+
+In this example:
+
+- Both `build-frontend` and `build-backend` trigger `notify-team`
+- The `notify-team` email unit runs twice (once from each build)
+- This is allowed because `notify-team` is not in a circular dependency
 
 ## Logging
 

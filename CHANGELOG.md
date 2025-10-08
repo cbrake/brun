@@ -17,6 +17,10 @@ and this project adheres to
   conditions and improving performance.
 - Trigger units now execute more efficiently by avoiding redundant condition
   checks, improving overall system responsiveness.
+- Multiple units can now trigger the same unit (such as email or log units)
+  multiple times in a single execution chain, while still properly detecting and
+  preventing circular dependencies. This allows for more flexible notification
+  and logging patterns.
 
 ## [0.0.7] - 2025-10-07
 
