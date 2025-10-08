@@ -5,6 +5,13 @@ units:
   - start:
       name: build-trigger
       on_success:
+        - format
+        
+  - run:
+      name: format
+      script: |
+        go fmt ./...
+      on_success:
         - run-tests
 
   - run:
