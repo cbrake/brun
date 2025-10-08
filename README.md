@@ -17,7 +17,8 @@ a single binary and no dependencies.
 
 - ✨ **simple!!!**
 - ⚡ **fast!!!**
-- 📦 no dependencies -- download a single binary and go for it ...
+- 📦 no dependencies -- download a single statically linked binary and go for it
+  ...
 - 🛠️ built-in commands for common tasks like boot, scripts, cron, email, git,
   file watching
 - 🔗 composed of chainable units
