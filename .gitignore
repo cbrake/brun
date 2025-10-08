@@ -5,3 +5,4 @@ dist
 .release-notes.md
 # Added by goreleaser init:
 dist/
+.goreleaser.yaml
