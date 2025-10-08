@@ -12,18 +12,18 @@ units:
       script: |
         go fmt ./...
       on_success:
-        - run-tests
+        - test
 
   - run:
-      name: run-tests
+      name: test
       script: |
         echo "Running tests..."
         go test
       on_success:
-        - build-brun
+        - build
 
   - run:
-      name: build-brun
+      name: build
       script: |
         echo "Building brun..."
         VERSION=$(git describe --tags HEAD 2>/dev/null || echo "dev")
