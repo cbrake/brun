@@ -33,7 +33,7 @@ func TestOrchestrator_MultipleUnitsCanTriggerSameUnit(t *testing.T) {
 
 	// Execute
 	ctx := context.Background()
-	if err := orchestrator.Run(ctx); err != nil {
+	if err := orchestrator.RunOnce(ctx); err != nil {
 		t.Fatalf("Orchestrator.Run() failed: %v", err)
 	}
 
@@ -78,7 +78,7 @@ func TestOrchestrator_CircularDependencyDetection(t *testing.T) {
 
 	// Execute - should complete without infinite loop
 	ctx := context.Background()
-	if err := orchestrator.Run(ctx); err != nil {
+	if err := orchestrator.RunOnce(ctx); err != nil {
 		t.Fatalf("Orchestrator.Run() failed: %v", err)
 	}
 
@@ -116,7 +116,7 @@ func TestOrchestrator_SelfReferentialCircularDependency(t *testing.T) {
 
 	// Execute - should complete without infinite loop
 	ctx := context.Background()
-	if err := orchestrator.Run(ctx); err != nil {
+	if err := orchestrator.RunOnce(ctx); err != nil {
 		t.Fatalf("Orchestrator.Run() failed: %v", err)
 	}
 
@@ -158,7 +158,7 @@ func TestOrchestrator_ComplexChainWithReusedUnits(t *testing.T) {
 
 	// Execute
 	ctx := context.Background()
-	if err := orchestrator.Run(ctx); err != nil {
+	if err := orchestrator.RunOnce(ctx); err != nil {
 		t.Fatalf("Orchestrator.Run() failed: %v", err)
 	}
 

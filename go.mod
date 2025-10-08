@@ -5,6 +5,7 @@ go 1.24
 require (
 	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/go-git/go-git/v5 v5.16.3
+	github.com/oklog/run v1.2.0
 	github.com/robfig/cron/v3 v3.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )

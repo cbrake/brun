@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"syscall"
 
 	"github.com/cbrake/brun"
+	"github.com/oklog/run"
 )
 
 var version = "dev"
@@ -141,13 +143,13 @@ func cmdRun(args []string) {
 
 	fmt.Printf("Loaded %d unit(s)\n", len(units))
 
-	// Create orchestrator and run units
-	ctx := context.Background()
+	// Create orchestrator
 	orchestrator := brun.NewOrchestrator(units)
 
 	// Handle single unit execution (no triggers)
 	if singleUnit != "" {
 		fmt.Printf("Running single unit: %s (triggers disabled)\n", singleUnit)
+		ctx := context.Background()
 		if err := orchestrator.RunSingleUnit(ctx, singleUnit, false); err != nil {
 			fmt.Fprintf(os.Stderr, "Error running unit '%s': %v\n", singleUnit, err)
 			os.Exit(1)
@@ -159,6 +161,7 @@ func cmdRun(args []string) {
 	// Handle trigger unit execution (with triggers)
 	if triggerUnit != "" {
 		fmt.Printf("Triggering unit: %s (triggers enabled)\n", triggerUnit)
+		ctx := context.Background()
 		if err := orchestrator.RunSingleUnit(ctx, triggerUnit, true); err != nil {
 			fmt.Fprintf(os.Stderr, "Error triggering unit '%s': %v\n", triggerUnit, err)
 			os.Exit(1)
@@ -167,17 +170,27 @@ func cmdRun(args []string) {
 		return
 	}
 
+	// Configure daemon mode
+	orchestrator.SetDaemonMode(daemonMode)
 	if daemonMode {
 		fmt.Println("Running in daemon mode (press Ctrl+C to stop)...")
-		if err := orchestrator.RunDaemon(ctx); err != nil {
-			fmt.Fprintf(os.Stderr, "Error running orchestrator: %v\n", err)
+	}
+
+	// Use oklog/run for coordinated shutdown
+	var g run.Group
+
+	// Actor 1: Orchestrator
+	g.Add(orchestrator.Run, orchestrator.Stop)
+
+	// Actor 2: Signal handler
+	g.Add(run.SignalHandler(context.Background(), syscall.SIGINT, syscall.SIGTERM))
+
+	// Run all actors
+	if err := g.Run(); err != nil {
+		if err.Error() == "shutdown timeout" {
 			os.Exit(1)
 		}
-	} else {
-		if err := orchestrator.Run(ctx); err != nil {
-			fmt.Fprintf(os.Stderr, "Error running orchestrator: %v\n", err)
-			os.Exit(1)
-		}
+		// Normal shutdown or other errors
 	}
 }
 

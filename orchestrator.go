@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sync"
 	"time"
 )
 
@@ -31,6 +32,11 @@ type Orchestrator struct {
 	units       []Unit
 	unitsByName map[string]Unit
 	results     map[string]*UnitResult
+	activeUnit  string
+	mu          sync.RWMutex
+	ctx         context.Context
+	cancel      context.CancelFunc
+	daemonMode  bool
 }
 
 // NewOrchestrator creates a new orchestrator with the given units
@@ -40,15 +46,43 @@ func NewOrchestrator(units []Unit) *Orchestrator {
 		unitsByName[unit.Name()] = unit
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &Orchestrator{
 		units:       units,
 		unitsByName: unitsByName,
 		results:     make(map[string]*UnitResult),
+		ctx:         ctx,
+		cancel:      cancel,
+		daemonMode:  false,
 	}
 }
 
-// Run executes all units with proper trigger handling (one-time run)
-func (o *Orchestrator) Run(ctx context.Context) error {
+// SetDaemonMode configures whether the orchestrator should run in daemon mode
+func (o *Orchestrator) SetDaemonMode(daemon bool) {
+	o.daemonMode = daemon
+}
+
+// Run executes the orchestrator (for use with oklog/run)
+func (o *Orchestrator) Run() error {
+	var err error
+	if o.daemonMode {
+		err = o.RunDaemon(o.ctx)
+	} else {
+		err = o.RunOnce(o.ctx)
+	}
+
+	return err
+}
+
+// Stop stops the orchestrator (for use with oklog/run)
+func (o *Orchestrator) Stop(error) {
+	o.cancel()
+}
+
+// RunOnce executes all units once with the given context
+// This method is useful for testing and one-time execution
+func (o *Orchestrator) RunOnce(ctx context.Context) error {
 	log.Println("Starting orchestrator...")
 	o.checkAndExecuteTriggers(ctx, true)
 	log.Println("Orchestrator finished")
@@ -112,6 +146,10 @@ func (o *Orchestrator) checkAndExecuteTriggers(ctx context.Context, isStartup bo
 // executeUnit runs a single unit and processes its triggers
 // callStack tracks units in the current execution path to detect circular dependencies
 func (o *Orchestrator) executeUnit(ctx context.Context, unit Unit, callStack []string) error {
+	// Track active unit
+	o.setActiveUnit(unit.Name())
+	defer o.setActiveUnit("")
+
 	result := &UnitResult{
 		Unit: unit,
 	}
@@ -317,6 +355,10 @@ func (o *Orchestrator) RunSingleUnit(ctx context.Context, unitName string, runTr
 
 // executeUnitNoTriggers runs a single unit without processing its triggers
 func (o *Orchestrator) executeUnitNoTriggers(ctx context.Context, unit Unit) error {
+	// Track active unit
+	o.setActiveUnit(unit.Name())
+	defer o.setActiveUnit("")
+
 	result := &UnitResult{
 		Unit: unit,
 	}
@@ -372,4 +414,18 @@ func (o *Orchestrator) executeUnitNoTriggers(ctx context.Context, unit Unit) err
 // GetResults returns all execution results
 func (o *Orchestrator) GetResults() map[string]*UnitResult {
 	return o.results
+}
+
+// GetActiveUnit returns the name of the currently executing unit, or empty string if none
+func (o *Orchestrator) GetActiveUnit() string {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+	return o.activeUnit
+}
+
+// setActiveUnit sets the currently executing unit (thread-safe)
+func (o *Orchestrator) setActiveUnit(unitName string) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	o.activeUnit = unitName
 }

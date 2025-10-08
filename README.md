@@ -1084,6 +1084,10 @@ units:
       delay: 5 # optional delay in seconds before reboot (default: 0)
 ```
 
+## Program lifecycle
+
+BRun traps kill signals and waits for all triggers to complete before exiting.
+
 ## Status
 
 This project is a quick prototype to explore these concepts. The syntax may

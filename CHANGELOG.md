@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Graceful shutdown now waits for active units to complete when you press Ctrl+C
+  or send a termination signal. BRun will wait for running units to finish
+  before exiting, preventing interruption of critical operations like builds,
+  deploys, or backups.
+
 ## [0.0.8] - 2025-10-08
 
 ### Fixed
