@@ -161,6 +161,8 @@ Copy and paste the following into your terminal:
 ```
 export VER=0.0.8
 export ARCH=$(uname -m)
+# Convert aarch64 to arm64 to match release archive names
+[ "$ARCH" = "aarch64" ] && ARCH="arm64"
 export ARCHIVE=brun-v${VER}-Linux-${ARCH}.tar.gz
 wget https://github.com/cbrake/brun/releases/download/v${VER}/${ARCHIVE}
 tar -xzf ${ARCHIVE} -C /usr/local/bin brun

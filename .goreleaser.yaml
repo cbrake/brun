@@ -44,7 +44,6 @@ archives:
       {{- if eq .Os "darwin" }}Macos
       {{- else }}{{ title .Os }}{{ end }}-
       {{- if eq .Arch "amd64" }}x86_64
-      {{- else if and (eq .Arch "arm64") (eq .Os "linux") }}aarch64
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     # use zip for windows archives
