@@ -159,7 +159,7 @@ To install, download the
 Copy and paste the following into your terminal:
 
 ```
-export VER=0.0.8
+export VER=0.0.9
 export ARCH=$(uname -m)
 # Convert aarch64 to arm64 to match release binary names
 [ "$ARCH" = "aarch64" ] && ARCH="arm64"
