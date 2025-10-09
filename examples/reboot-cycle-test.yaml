@@ -18,8 +18,8 @@ units:
   - start:
       name: start-trigger
       always:
-        - check-nvme
         - counter
+        - check-nvme
   - run:
       name: check-nvme
       script: |
