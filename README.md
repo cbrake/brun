@@ -384,11 +384,12 @@ BRun runs for the first time.
 
 ## File format
 
-YAML is used for the BRun file format and leverages the best of Gitlab CI/CD,
-Drone, Ansible, and other popular systems.
+YAML is used for the BRun config file and is similar to config files used in
+Gitlab CI/CD, Drone, Ansible, etc.
 
-The system is composed of units. Each unit can trigger additional units. This
-allows us to start/sequence operations and create build/test pipelines.
+The configuration is composed of chainable units. Each unit can trigger
+additional units. This allows us to start/sequence operations and create
+build/test pipelines.
 
 ### Config
 
