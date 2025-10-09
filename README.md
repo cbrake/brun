@@ -389,7 +389,7 @@ Gitlab CI/CD, Drone, Ansible, etc.
 
 The configuration is composed of chainable units. Each unit can trigger
 additional units. This allows us to start/sequence operations and create
-build/test pipelines.
+workflow pipelines.
 
 ### Config
 
