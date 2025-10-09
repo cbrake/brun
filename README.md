@@ -615,8 +615,9 @@ units:
 
 The Count unit creates an entry in the state file for every unit that triggers
 this unit and counts how many times it has been triggered. This is useful for
-tracking how often specific events occur or how many times particular units
-execute.
+tracking how often specific events (like errors) occur or how many times particular units
+execute. The count quickly tells you something happened, and then the log
+files can be examined to understand why.
 
 **Behavior:**
 
