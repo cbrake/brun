@@ -8,24 +8,25 @@
 <em>Trigger → Run</em>
 </p>
 
-Do you find tools like Github Actions or Ansible useful, but would like a simple way
-to do similar things natively? BRun is a native Linux automation tool that connects triggers (boot, cron, file
-changes, git commits) to actions (run scripts, send emails, log events, reboot).
-Build CI/CD pipelines, automate system tasks, or test embedded devices—all with
-a single binary and no dependencies.
+Do you find tools like Github Actions or Ansible useful, but would like a simple
+way to do similar things natively? BRun is a native Linux automation tool that
+connects triggers (boot, cron, file changes, git commits) to actions (run
+scripts, send emails, log events, reboot). Build CI/CD pipelines, automate
+system tasks, or test embedded devices—all with a single binary and no
+dependencies.
 
 **Features/goals:**
 
 - ✨ **simple!!!**
 - ⚡ **fast!!!**
-- 📦 no dependencies -- download a single statically linked binary and go for it
-  ...
-- 🛠️ built-in commands for common tasks like boot, scripts, cron, email, git,
-  file watching
-- 🔗 composed of chainable units
+- 📦 no dependencies -- [install](#example-install-on-linux) a single statically
+  linked binary and go for it ...
+- 🛠️ built-in [units](#units) for common tasks like boot, scripts, cron, email,
+  git, file watching
+- 🔗 units can be chained into pipelines
 - 💻 first priority is to run native
 - 🚫 does not require containers (but may support them in the future)
-- 📄 simple YAML config format
+- 📄 simple YAML [config format](#file-format)
 
 **Things might do with this**
 
@@ -188,8 +189,8 @@ or
 
 `brun install -daemon` (run in daemon mode)
 
-If `brun install` is run as root, it installs a systemd service that runs as root,
-otherwise as the user who runs the install.
+If `brun install` is run as root, it installs a systemd service that runs as
+root, otherwise as the user who runs the install.
 
 If a config file does not exist, one is created.
 
@@ -616,9 +617,9 @@ units:
 
 The Count unit creates an entry in the state file for every unit that triggers
 this unit and counts how many times it has been triggered. This is useful for
-tracking how often specific events (like errors) occur or how many times particular units
-execute. The count quickly tells you something happened, and then the log
-files can be examined to understand why.
+tracking how often specific events (like errors) occur or how many times
+particular units execute. The count quickly tells you something happened, and
+then the log files can be examined to understand why.
 
 **Behavior:**
 
