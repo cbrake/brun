@@ -8,7 +8,8 @@
 <em>Trigger → Run</em>
 </p>
 
-BRun is a native Linux automation tool that connects triggers (boot, cron, file
+Do you find tools like Github Actions or Ansible useful, but would like a simple way
+to do similar things natively? BRun is a native Linux automation tool that connects triggers (boot, cron, file
 changes, git commits) to actions (run scripts, send emails, log events, reboot).
 Build CI/CD pipelines, automate system tasks, or test embedded devices—all with
 a single binary and no dependencies.
