@@ -36,7 +36,7 @@ units:
         - reboot
   - log:
       name: log-error
-      file: /var/lib/brun/error.log
+      file: /root/error.log
   - count:
       name: error-counter
   - count:
