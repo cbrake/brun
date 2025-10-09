@@ -168,6 +168,7 @@ export BINARY=brun-v${VER}-Linux-${ARCH}
 wget https://github.com/cbrake/brun/releases/download/v${VER}/${BINARY}
 # Install to ~/.local/bin for user, /usr/local/bin for root
 if [ "$(id -u)" -eq 0 ]; then
+  mkdir -p /usr/local/bin
   install -m 755 ${BINARY} /usr/local/bin/brun
 else
   mkdir -p ~/.local/bin
