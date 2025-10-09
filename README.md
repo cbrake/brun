@@ -181,14 +181,14 @@ rm ${BINARY}
 
 If you would like to install a systemd unit to run brun automatically, then run:
 
-`brun install` (run once then exit)
+`brun install` (run brun once then exit)
 
 or
 
 `brun install -daemon` (run in daemon mode)
 
-If this is run as root, it installs a systemd service that runs as root,
-otherwise as the user that runs the install.
+If `brun install` is run as root, it installs a systemd service that runs as root,
+otherwise as the user who runs the install.
 
 If a config file does not exist, one is created.
 
