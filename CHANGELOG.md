@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+## [0.0.10] - 2025-10-13
+
+- Email notifications now include a proper Date header, ensuring emails display
+  correct timestamps in mail clients and comply with email standards (RFC 5322).
+
 ## [0.0.9] - 2025-10-08
 
 ### Added
