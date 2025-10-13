@@ -10,6 +10,10 @@ and this project adheres to
 
 ### Fixed
 
+## [0.0.11] - 2025-10-13
+
+- test release
+
 ## [0.0.10] - 2025-10-13
 
 - Email notifications now include a proper Date header, ensuring emails display
