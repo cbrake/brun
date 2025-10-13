@@ -34,9 +34,13 @@ units:
       name: build-agx
       directory: /scratch4/yoe/yoe-distro
       shell: bash
-      use_pty: true
       script: |
         echo "Building AGX Orin"
+        # Set DOCKER_PSEUDO_TTY=no to disable TTY allocation in Docker.
+        # This prevents bitbake from outputting verbose interactive progress
+        # lines that create massive logs/emails. The envsetup.sh script
+        # respects this environment variable.
+        export DOCKER_PSEUDO_TTY=no
         source envsetup.sh jetson-agx-orin-devkit
         # -qq keeps bitbake from spamming logs and emails with
         # parsing messages
