@@ -142,6 +142,10 @@ func TestEmailUnit_BuildMessage(t *testing.T) {
 	if !strings.Contains(message, "MIME-Version: 1.0") {
 		t.Error("Message missing MIME-Version header")
 	}
+
+	if !strings.Contains(message, "Date: ") {
+		t.Error("Message missing Date header")
+	}
 }
 
 func TestLoadConfig_WithEmailUnit(t *testing.T) {

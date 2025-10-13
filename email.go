@@ -184,6 +184,7 @@ func (e *EmailUnit) buildMessage(subject, body string) string {
 	msg.WriteString(fmt.Sprintf("From: %s\r\n", e.from))
 	msg.WriteString(fmt.Sprintf("To: %s\r\n", strings.Join(e.to, ", ")))
 	msg.WriteString(fmt.Sprintf("Subject: %s\r\n", subject))
+	msg.WriteString(fmt.Sprintf("Date: %s\r\n", time.Now().Format(time.RFC1123Z)))
 	msg.WriteString("MIME-Version: 1.0\r\n")
 	msg.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
 	msg.WriteString("\r\n")

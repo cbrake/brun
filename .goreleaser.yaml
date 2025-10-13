@@ -16,7 +16,7 @@ before:
     - go generate ./...
     # Extract changelog section for this version and save to file
     # GORELEASER_CURRENT_TAG is set by goreleaser automatically
-    - bash -c './scripts/extract-changelog.sh $(git describe --tags --abbrev=0) > .release-notes.md'
+    - bash -c './scripts/extract-changelog.sh {{ .Tag }} > .release-notes.md'
 
 builds:
   - main: ./cmd/brun
@@ -54,8 +54,12 @@ changelog:
       - "^test:"
 
 release:
-  footer: >-
+  header: |
+    ## Release Notes
+  footer: |
 
     ---
 
     To update, run: `brun update`
+  extra_files:
+    - glob: .release-notes.md
