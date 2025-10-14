@@ -42,9 +42,7 @@ units:
         # respects this environment variable.
         export DOCKER_PSEUDO_TTY=no
         source envsetup.sh jetson-agx-orin-devkit
-        # -qq keeps bitbake from spamming logs and emails with
-        # parsing messages
-        bitbake -qq yoe-simpleiot-image
+        bitbake yoe-simpleiot-image
       always:
         - email
 
