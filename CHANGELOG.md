@@ -8,13 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.12] - 2025-10-14
+
 ### Fixed
 
-- Trigger units (git, cron, file, etc.) now properly check their conditions
-  when triggered by other units via `on_success`, `on_failure`, or `always`
-  fields. For example, when a cron unit triggers a git unit, the git unit will
-  only execute if there are actual git updates, preventing unnecessary builds
-  and operations.
+- Trigger units (git, cron, file, etc.) now properly check their conditions when
+  triggered by other units via `on_success`, `on_failure`, or `always` fields.
+  For example, when a cron unit triggers a git unit, the git unit will only
+  execute if there are actual git updates, preventing unnecessary builds and
+  operations.
 
 ## [0.0.11] - 2025-10-13
 
