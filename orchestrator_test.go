@@ -5,6 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 // TestOrchestrator_MultipleUnitsCanTriggerSameUnit verifies that multiple units
@@ -180,5 +184,133 @@ func TestOrchestrator_ComplexChainWithReusedUnits(t *testing.T) {
 	// Verify log file exists and was written
 	if _, err := os.Stat(logFile); os.IsNotExist(err) {
 		t.Error("Log file should have been created")
+	}
+}
+
+// TestOrchestrator_TriggerUnitChecksConditionWhenTriggered verifies that
+// trigger units run their Check() method when triggered by other units
+// (addressing issue #19: cron unit triggering git unit should check condition)
+func TestOrchestrator_TriggerUnitChecksConditionWhenTriggered(t *testing.T) {
+	tmpDir := t.TempDir()
+	stateFile := filepath.Join(tmpDir, "state.yaml")
+	gitDir := filepath.Join(tmpDir, "testrepo")
+
+	// Initialize a git repository using go-git
+	repo, err := git.PlainInit(gitDir, false)
+	if err != nil {
+		t.Fatalf("Failed to init git repo: %v", err)
+	}
+
+	// Create initial commit
+	testFile := filepath.Join(gitDir, "test.txt")
+	if err := os.WriteFile(testFile, []byte("initial content"), 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		t.Fatalf("Failed to get worktree: %v", err)
+	}
+
+	if _, err := worktree.Add("test.txt"); err != nil {
+		t.Fatalf("Failed to add file: %v", err)
+	}
+
+	_, err = worktree.Commit("Initial commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test",
+			Email: "test@example.com",
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to commit: %v", err)
+	}
+
+	// Create shared state and initialize git trigger state
+	state := NewState(stateFile)
+	if err := state.Load(); err != nil {
+		t.Fatalf("Failed to load state: %v", err)
+	}
+
+	// Get the current commit hash to simulate a previous run
+	repoObj, err := git.PlainOpen(gitDir)
+	if err != nil {
+		t.Fatalf("Failed to open git repo: %v", err)
+	}
+	ref, err := repoObj.Head()
+	if err != nil {
+		t.Fatalf("Failed to get HEAD: %v", err)
+	}
+	initialHash := ref.Hash().String()
+
+	// Pre-populate state with the initial commit hash to simulate a previous run
+	if err := state.SetString("git-trigger", "last_commit_hash", initialHash); err != nil {
+		t.Fatalf("Failed to set initial state: %v", err)
+	}
+
+	// Create units:
+	// start -> git-trigger (checks for git updates, none exist yet)
+	// The git trigger should Check() and NOT run because no updates exist
+	ctx := context.Background()
+	startTrigger := NewStartTrigger("start", []string{"git-trigger"}, nil, nil)
+	gitTrigger := NewGitTrigger("git-trigger", gitDir, "main", false, time.Second, false, state, []string{"build"}, nil, nil)
+	buildUnit := NewRunUnit("build", "echo 'Building...'", "", 0, "", false, nil, nil, nil)
+
+	units := []Unit{startTrigger, gitTrigger, buildUnit}
+	orchestrator := NewOrchestrator(units)
+
+	// Execute - git-trigger should be triggered by start, but should check and skip
+	if err := orchestrator.RunOnce(ctx); err != nil {
+		t.Fatalf("Orchestrator.Run() failed: %v", err)
+	}
+
+	// Verify git-trigger did NOT execute (because Check() returned false)
+	results := orchestrator.GetResults()
+	if _, ok := results["git-trigger"]; ok {
+		t.Error("git-trigger should NOT have executed because no git updates exist")
+	}
+
+	// Verify build unit was NOT triggered
+	if _, ok := results["build"]; ok {
+		t.Error("build unit should NOT have executed because git-trigger should not have run")
+	}
+
+	// Now make a git change and run again
+	if err := os.WriteFile(testFile, []byte("updated content"), 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	if _, err := worktree.Add("test.txt"); err != nil {
+		t.Fatalf("Failed to add file: %v", err)
+	}
+
+	_, err = worktree.Commit("Update file", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test",
+			Email: "test@example.com",
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to commit: %v", err)
+	}
+
+	// Wait for poll interval
+	time.Sleep(1100 * time.Millisecond)
+
+	// Create new orchestrator and run again
+	orchestrator2 := NewOrchestrator(units)
+	if err := orchestrator2.RunOnce(ctx); err != nil {
+		t.Fatalf("Orchestrator.Run() failed on second run: %v", err)
+	}
+
+	// Verify git-trigger DID execute this time (because Check() returned true)
+	results2 := orchestrator2.GetResults()
+	if _, ok := results2["git-trigger"]; !ok {
+		t.Error("git-trigger SHOULD have executed because git updates exist")
+	}
+
+	// Verify build unit was triggered
+	if _, ok := results2["build"]; !ok {
+		t.Error("build unit SHOULD have executed because git-trigger ran successfully")
 	}
 }

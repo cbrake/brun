@@ -409,6 +409,121 @@ config:
 
 The config file also contains a `units` section as described below.
 
+**Variables**
+
+_(NOTE: Variables are in planning phase and have not been implemented yet.)_
+
+Variables can be defined in a `vars` block and referenced in any string field
+using [Go Templates](https://pkg.go.dev/text/template). Variables are expanded
+when a unit is run so that variable updates are processed.
+
+**Syntax:**
+
+Variables are accessed using Go template syntax with double curly braces:
+
+```yaml
+vars:
+  project_name: myapp
+  build_dir: /home/user/builds
+  version: 1.0.0
+
+units:
+  - run:
+      name: build
+      directory: { { .build_dir } }
+      script: |
+        echo "Building {{ .project_name }} version {{ .version }}"
+        go build -o {{ .project_name }}
+```
+
+**Features:**
+
+- **Basic variables**: Access with `{{ .variable_name }}`
+- **Nested variables**: Use dot notation `{{ .config.path }}`
+- **Pipelines**: Chain operations `{{ .name | upper | quote }}`
+- **Conditionals**:
+  `{{ if eq .env "prod" }}production{{ else }}development{{ end }}`
+- **Loops**: `{{ range .items }}{{ . }}{{ end }}`
+- **Functions**: Built-in functions like `eq`, `ne`, `lt`, `gt`, `and`, `or`,
+  `not`
+
+**Example with nested variables:**
+
+Variables can be nested using maps to organize related configuration:
+
+```yaml
+vars:
+  database:
+    host: localhost
+    port: 5432
+    name: myapp_db
+  server:
+    host: 0.0.0.0
+    port: 8080
+
+units:
+  - run:
+      name: start-server
+      script: |
+        echo "Starting server on {{ .server.host }}:{{ .server.port }}"
+        echo "Connecting to database {{ .database.name }} at {{ .database.host }}:{{ .database.port }}"
+        ./start-server
+```
+
+**Example with conditionals:**
+
+```yaml
+vars:
+  environment: production
+  enable_tests: true
+
+units:
+  - run:
+      name: deploy
+      script: |
+        echo "Deploying to {{ .environment }}"
+        {{ if eq .environment "production" }}
+        ./deploy-prod.sh
+        {{ else }}
+        ./deploy-dev.sh
+        {{ end }}
+
+  - run:
+      name: test
+      {{ if .enable_tests }}
+      script: go test -v ./...
+      {{ else }}
+      script: echo "Tests disabled"
+      {{ end }}
+```
+
+**Environment variables:**
+
+Environment variables can be accessed using the `env` function (if available):
+
+```yaml
+units:
+  - run:
+      name: build
+      script: |
+        echo "User: {{ env "USER" }}"
+        echo "Home: {{ env "HOME" }}"
+```
+
+**Whitespace control:**
+
+Use `-` to trim whitespace before or after template actions:
+
+```yaml
+script: |
+  {{- if .debug }}
+  echo "Debug mode enabled"
+  {{- end }}
+```
+
+See the [Go template documentation](https://pkg.go.dev/text/template) for full
+syntax reference.
+
 ## Units
 
 BRun supports the following unit types:
@@ -436,6 +551,15 @@ All units share the following common fields:
   fails.
 - **always** (optional): An array of unit names to trigger regardless of whether
   this unit succeeds or fails. These units run after success/failure triggers.
+
+**Trigger unit behavior:**
+
+When a trigger unit (boot, cron, file, git, start) is triggered by another unit
+via `on_success`, `on_failure`, or `always`, the trigger unit's condition is
+still checked before execution. For example, if a cron unit triggers a git unit,
+the git unit will only execute if there are actual git updates detected. This
+prevents unnecessary operations and ensures triggers only fire when their
+conditions are truly met.
 
 ### Start Unit
 

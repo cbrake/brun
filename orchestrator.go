@@ -296,6 +296,20 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 			continue
 		}
 
+		// If the target is a trigger unit, check its condition before executing
+		if triggerUnit, ok := targetUnit.(TriggerUnit); ok {
+			shouldTrigger, err := triggerUnit.Check(ctx)
+			if err != nil {
+				log.Printf("Error checking trigger '%s': %v", unitName, err)
+				continue
+			}
+			if !shouldTrigger {
+				log.Printf("Trigger '%s' condition not met, skipping execution", unitName)
+				continue
+			}
+			log.Printf("Trigger '%s' condition met, executing...", unitName)
+		}
+
 		// Add current unit to call stack for downstream execution
 		newCallStack := append(callStack, unitName)
 
