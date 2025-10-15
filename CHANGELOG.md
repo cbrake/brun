@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.14] - 2025-10-15
+
+- Expand Git debugging to print messages during checks.
+
 ## [0.0.13] - 2025-10-15
 
 ### Fixed

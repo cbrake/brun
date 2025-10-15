@@ -159,6 +159,9 @@ func (g *GitTrigger) getCurrentCommitHash() (string, error) {
 
 // Check returns true if the git repository has new commits since last check
 func (g *GitTrigger) Check(ctx context.Context) (bool, error) {
+	if g.debug {
+		log.Println("GitTrigger Check, poll interval: ", g.pollInterval)
+	}
 	// If poll interval is set and not enough time has passed, skip check
 	// This implements the polling behavior for daemon mode
 	if g.pollInterval > 0 {
@@ -174,6 +177,9 @@ func (g *GitTrigger) Check(ctx context.Context) (bool, error) {
 		g.lastCheckTime = now
 	}
 	// If poll interval is 0, this is a manual trigger - always check for updates
+	if g.debug {
+		fmt.Println("Git: poll interval expired, checking for git updates ...")
+	}
 
 	// If this is a local workspace, update it first
 	if g.isLocalWorkspace() {
