@@ -8,9 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.15] - 2025-10-15
+
 ### Added
 
-- Configuration files can now be encrypted with SOPS, allowing you to safely store passwords, API keys, and other secrets directly in your config files. BRun automatically decrypts them at runtime with no changes to your workflow.
+- Configuration files can now be encrypted with SOPS, allowing you to safely
+  store passwords, API keys, and other secrets directly in your config files.
+  BRun automatically decrypts them at runtime with no changes to your workflow.
 
 ## [0.0.14] - 2025-10-15
 
