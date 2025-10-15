@@ -1224,12 +1224,14 @@ BRun traps kill signals and waits for all triggers to complete before exiting.
 This project is a quick prototype to explore these concepts. The syntax may
 change as we learn how to better do this.
 
-Feedback/contributions welcome!
+If you are using BRun, please like this repo and subscribe to release updates. 
+If there are features you would like, open an issue. This provides motivation 
+to keep the project going.
 
-Please [discuss](https://github.com/cbrake/brun/discussions) before implementing
+Feedback/contributions welcome! Please [discuss](https://github.com/cbrake/brun/discussions) before implementing
 anything major.
 
 See [issues](https://github.com/cbrake/brun/issues) and [ideas](ideas.md) for
 future direction.
 
-I have no idea if this works on Windows -- feel free to try and let us know.
+I have no idea if this works on Windows -- feel free to try and report status.
