@@ -1,10 +1,12 @@
 package brun
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/getsops/sops/v3/decrypt"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,11 +35,22 @@ type UnitConfigWrapper struct {
 	Git    *GitConfig    `yaml:"git,omitempty"`
 }
 
-// LoadConfig loads a configuration file from the given path
+// LoadConfig loads a configuration file from the given path.
+// If the file is encrypted with SOPS, it will be automatically decrypted.
 func LoadConfig(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	// Check if file is SOPS-encrypted by looking for sops metadata
+	if bytes.Contains(data, []byte("sops:")) || bytes.Contains(data, []byte("\"sops\":")) {
+		// Decrypt with SOPS
+		cleartext, err := decrypt.File(path, "yaml")
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt config file: %w", err)
+		}
+		data = cleartext
 	}
 
 	var config Config

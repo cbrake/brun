@@ -27,8 +27,9 @@ dependencies.
 - 💻 first priority is to run native
 - 🚫 does not require containers (but may support them in the future)
 - 📄 simple YAML [config format](#file-format)
+- 🔒 built-in [secrets management](#secrets-management) with SOPS encryption
 
-**Things might do with this**
+**Things you might do with BRun**
 
 - Reboot cycle test for embedded systems.
 - Nightly Yocto builds on your powerful workstation.
@@ -381,6 +382,64 @@ Each unit stores its state under a key corresponding to its name or type.
 
 The state file is automatically created with appropriate permissions (0644) when
 BRun runs for the first time.
+
+## Secrets Management
+
+BRun supports encrypting configuration files with
+[SOPS (Secrets OPerationS)](https://github.com/getsops/sops), allowing you to
+safely store passwords, API keys, and other sensitive data directly in your
+config files.
+
+**Benefits:**
+
+- Keep secrets encrypted at rest in version control
+- Transparent decryption at runtime - no UI changes needed
+- Support for multiple key providers (age, PGP, AWS KMS, GCP KMS, Azure Key
+  Vault)
+- Backward compatible - plaintext configs still work
+
+**Quick Start:**
+
+1. Install [SOPS](https://github.com/getsops/sops/releases) and
+   [age](https://github.com/FiloSottile/age/releases)
+
+2. Generate an encryption key:
+
+```bash
+age-keygen -o ~/.config/sops/age/keys.txt
+# Save the public key (age1...) shown in output
+```
+
+3. Encrypt your config file:
+
+```bash
+sops --encrypt --age <your-public-key> --in-place config.yaml
+```
+
+4. Run BRun normally:
+
+```bash
+brun run config.yaml  # Automatically decrypts
+```
+
+Your secrets are now encrypted in the config file but decrypted transparently
+when BRun runs. The file structure remains visible (unit names, triggers, etc.),
+only sensitive values are encrypted.
+
+**Selective Field Encryption:**
+
+You can configure SOPS to encrypt only sensitive fields (like passwords and API keys) while keeping the rest of your config readable. Create a `.sops.yaml` file in your repository root:
+
+```yaml
+creation_rules:
+  - path_regex: \.yaml$
+    encrypted_regex: "^(.*password.*|.*secret.*|.*key.*|.*token.*|smtp_user)$"
+    age: your-public-key-here
+```
+
+This will encrypt only fields matching the patterns (password, secret, key, token, etc.) while leaving structural fields like `name`, `script`, and `directory` in plaintext for easy review in version control.
+
+See [.sops.yaml](.sops.yaml) for a complete example configuration.
 
 ## File format
 
@@ -1032,8 +1091,8 @@ workspace and submodules are updated to the latest on the specified branch.
 - **poll** (optional): polling interval for checking repository updates (e.g.,
   "2m", "30s", "1h"). When set, the git unit actively checks for updates at the
   specified interval in daemon mode. When omitted or set to empty string, the
-  unit operates in manual trigger mode and only checks for updates when triggered
-  by another unit (e.g., via `on_success`).
+  unit operates in manual trigger mode and only checks for updates when
+  triggered by another unit (e.g., via `on_success`).
 - **debug** (optional): when true, logs detailed git operation messages (fetch,
   reset, submodule updates). Defaults to false.
 
@@ -1221,14 +1280,15 @@ BRun traps kill signals and waits for all triggers to complete before exiting.
 
 ## Status
 
-This project is in the exploratory phase as we explore various concepts. The syntax of the BRun file
-may change as we learn how to better do this.
+This project is in the exploratory phase as we explore various concepts. The
+syntax of the BRun file may change as we learn how to better do this.
 
-If you are using BRun, please like this repo and subscribe to release updates. 
-If there are features you would like, open an issue. This provides motivation 
-to keep the project going.
+If you are using BRun, please like this repo and subscribe to release updates.
+If there are features you would like, open an issue. This provides motivation to
+keep the project going.
 
-Feedback/contributions welcome! Please [discuss](https://github.com/cbrake/brun/discussions) before implementing
+Feedback/contributions welcome! Please
+[discuss](https://github.com/cbrake/brun/discussions) before implementing
 anything major.
 
 See [issues](https://github.com/cbrake/brun/issues) and [ideas](ideas.md) for

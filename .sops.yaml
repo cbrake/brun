@@ -1,0 +1,44 @@
+# SOPS configuration file for BRun
+# This file tells SOPS which fields to encrypt in your config files.
+# Place this in the root of your repository.
+
+# Encrypt only fields that contain sensitive data
+creation_rules:
+  # For all YAML files in the repository
+  - path_regex: \.yaml$
+    # Encrypt fields with these names (case-insensitive regex)
+    encrypted_regex: "^(.*password.*|.*secret.*|.*key.*|.*token.*|smtp_user)$"
+    # Uncomment and configure one of the key providers below:
+
+    # Option 1: age (recommended for local/personal use)
+    # age: age1a0n5czrrjewj8xuq50v39w4qryxd0g0qs0875f846x2u9gwt9gasauw4fl
+
+    # Option 2: PGP (good for team use)
+    # pgp: >-
+    #   FBC7B9E2A4F9289AC0C1D4843D16CEE4A27381B4,
+    #   1234567890ABCDEF1234567890ABCDEF12345678
+
+    # Option 3: AWS KMS (for AWS environments)
+    # kms: arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+
+    # Option 4: GCP KMS (for GCP environments)
+    # gcp_kms: projects/my-project/locations/global/keyRings/my-keyring/cryptoKeys/my-key
+
+    # Option 5: Azure Key Vault (for Azure environments)
+    # azure_kv: https://my-vault.vault.azure.net/keys/my-key/version
+
+# Example usage:
+# 1. Replace the age key above with your public key from: age-keygen -o ~/.config/sops/age/keys.txt
+# 2. Encrypt your config: sops -e config.yaml > config.enc.yaml
+# 3. Or encrypt in place: sops -e -i config.yaml
+# 4. Edit encrypted file: sops config.yaml
+# 5. Run with BRun: brun run config.yaml (automatically decrypts)
+
+# The encrypted_regex above will encrypt any field matching these patterns:
+# - *password* (smtp_password, db_password, etc.)
+# - *secret* (api_secret, client_secret, etc.)
+# - *key* (api_key, private_key, access_key, etc.)
+# - *token* (auth_token, access_token, etc.)
+# - smtp_user (often contains sensitive email addresses)
+#
+# Fields like 'name', 'script', 'directory' will remain in plaintext for readability.

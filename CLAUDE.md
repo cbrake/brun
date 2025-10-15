@@ -27,7 +27,7 @@ BRun is a tool for running automated builds and tests with a focus on low-level 
 
 **systembooted.go**: Implements the `SystemBootedTrigger` which uses `BootDetector` to fire once per boot cycle. State files default to `/var/lib/brun/systembooted.state` but can be customized.
 
-**config.go**: Handles YAML configuration parsing and unit instantiation. The config format uses a wrapper pattern to support multiple unit types. The `state_location` field is required in all configuration files.
+**config.go**: Handles YAML configuration parsing and unit instantiation. The config format uses a wrapper pattern to support multiple unit types. The `state_location` field is required in all configuration files. Supports automatic decryption of SOPS-encrypted config files at runtime.
 
 ## Development
 
@@ -66,3 +66,68 @@ Run a specific test:
 ```bash
 go test -v -run TestSystemBootedTrigger
 ```
+
+## Security
+
+### Secrets Management with SOPS
+
+BRun supports encrypting configuration files with [SOPS (Secrets OPerationS)](https://github.com/getsops/sops). This allows you to store sensitive data like passwords, API keys, and tokens directly in your config files while keeping them encrypted at rest.
+
+**Features:**
+- Automatic transparent decryption at runtime
+- No changes to user interface - just run `./brun run config.yaml`
+- Backward compatible with plaintext configs
+- Supports multiple key providers (age, PGP, AWS KMS, GCP KMS, Azure Key Vault)
+
+**Setup:**
+
+1. Install SOPS and age:
+```bash
+# Install SOPS (see https://github.com/getsops/sops/releases)
+# Install age
+```
+
+2. Generate an age key:
+```bash
+age-keygen -o ~/.config/sops/age/keys.txt
+# Save the public key (age1...) for encrypting files
+```
+
+3. Encrypt your config file:
+```bash
+sops --encrypt --age <public-key> --in-place config.yaml
+```
+
+4. Run BRun normally:
+```bash
+./brun run config.yaml  # Decrypts automatically if key is available
+```
+
+**Key Management:**
+
+SOPS automatically looks for keys in standard locations:
+- **age keys:** `~/.config/sops/age/keys.txt`
+- **PGP keys:** GPG keyring
+- **Cloud KMS:** Uses cloud provider credentials
+
+**Example encrypted config:**
+
+After encrypting, your config file will contain encrypted values with a `sops:` metadata section at the bottom. The file structure remains visible, but sensitive values are encrypted:
+
+```yaml
+config:
+  state_location: ENC[AES256_GCM,data:...,iv:...,tag:...,type:str]
+units:
+  - run:
+      name: deploy
+      script: ENC[AES256_GCM,data:...,iv:...,tag:...,type:str]
+sops:
+  age:
+    - recipient: age1...
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        ...
+        -----END AGE ENCRYPTED FILE-----
+```
+
+BRun detects the `sops:` metadata and automatically decrypts the file before parsing. Plaintext configs continue to work without modification.
