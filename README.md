@@ -1221,8 +1221,8 @@ BRun traps kill signals and waits for all triggers to complete before exiting.
 
 ## Status
 
-This project is a quick prototype to explore these concepts. The syntax may
-change as we learn how to better do this.
+This project is in the exploratory phase as we explore various concepts. The syntax of the BRun file
+may change as we learn how to better do this.
 
 If you are using BRun, please like this repo and subscribe to release updates. 
 If there are features you would like, open an issue. This provides motivation 
