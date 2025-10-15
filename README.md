@@ -1032,7 +1032,8 @@ workspace and submodules are updated to the latest on the specified branch.
 - **poll** (optional): polling interval for checking repository updates (e.g.,
   "2m", "30s", "1h"). When set, the git unit actively checks for updates at the
   specified interval in daemon mode. When omitted or set to empty string, the
-  unit waits to be manually triggered.
+  unit operates in manual trigger mode and only checks for updates when triggered
+  by another unit (e.g., via `on_success`).
 - **debug** (optional): when true, logs detailed git operation messages (fetch,
   reset, submodule updates). Defaults to false.
 
