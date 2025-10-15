@@ -1,6 +1,8 @@
 # SOPS configuration file for BRun
 # This file tells SOPS which fields to encrypt in your config files.
-# Place this in the root of your repository.
+# Place this in the root of your repository, or if you are running 
+# BRun as Systemd user, then recommend
+# placing in your home folder (`~/`).
 
 # Encrypt only fields that contain sensitive data
 creation_rules:
