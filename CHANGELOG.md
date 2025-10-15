@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.13] - 2025-10-15
+
 ### Fixed
 
 - Git triggers without a `poll` interval (manual trigger mode) now correctly
