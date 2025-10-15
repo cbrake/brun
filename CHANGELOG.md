@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- Git triggers without a `poll` interval (manual trigger mode) now correctly
+  check for updates when triggered by other units instead of always skipping
+  execution. This enables on-demand git update checking without requiring
+  continuous polling.
+
 ## [0.0.12] - 2025-10-14
 
 ### Fixed
