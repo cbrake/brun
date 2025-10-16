@@ -1,3 +1,17 @@
 BRun
+BitBake
 CD
+KMS
+Mailgun
+RFC3339
+SHA256
+STARTTLS
+SendGrid
+TODO
+TTY
+Yocto
 cron
+robfig
+smtp
+systemd
+yadm
