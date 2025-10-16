@@ -15,6 +15,30 @@ scripts, send emails, log events, reboot). Build CI/CD pipelines, automate
 system tasks, or test embedded devices—all with a single binary and no
 dependencies.
 
+**Features/goals:**
+
+- ✨ **simple!!!**
+- ⚡ **fast!!!**
+- 📦 no dependencies -- [install](#example-install-on-linux) a single statically
+  linked binary and go for it ...
+- 🛠️ built-in [units](#units) for common tasks like boot, scripts, cron, email,
+  git, file watching
+- 🔗 units can be chained into pipelines
+- 💻 first priority is to run native
+- 🚫 does not require containers (but may support them in the future)
+- 📄 simple YAML [config format](#file-format)
+- 🔒 built-in [secrets management](#secrets-management) with SOPS encryption
+
+**Things you might do with BRun**
+
+- Reboot cycle test for embedded systems.
+- Nightly Yocto builds on your powerful workstation.
+- Run admin tasks like backups.
+- Monitor the `/etc` directory a server for changes.
+- Implemented a watchdog that reboots the system under certain conditions.
+- Run build/test/deploy pipelines.
+- Notify someone when CPU usage is too high or diskspace too low.
+
 <!--toc:start-->
 
 - [BRun](#brun)
@@ -46,30 +70,6 @@ dependencies.
   - [Program lifecycle](#program-lifecycle)
   - [Status](#status)
   <!--toc:end-->
-
-**Features/goals:**
-
-- ✨ **simple!!!**
-- ⚡ **fast!!!**
-- 📦 no dependencies -- [install](#example-install-on-linux) a single statically
-  linked binary and go for it ...
-- 🛠️ built-in [units](#units) for common tasks like boot, scripts, cron, email,
-  git, file watching
-- 🔗 units can be chained into pipelines
-- 💻 first priority is to run native
-- 🚫 does not require containers (but may support them in the future)
-- 📄 simple YAML [config format](#file-format)
-- 🔒 built-in [secrets management](#secrets-management) with SOPS encryption
-
-**Things you might do with BRun**
-
-- Reboot cycle test for embedded systems.
-- Nightly Yocto builds on your powerful workstation.
-- Run admin tasks like backups.
-- Monitor the `/etc` directory a server for changes.
-- Implemented a watchdog that reboots the system under certain conditions.
-- Run build/test/deploy pipelines.
-- Notify someone when CPU usage is too high or diskspace too low.
 
 ## Example Configuration
 
