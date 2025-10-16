@@ -10,6 +10,11 @@ creation_rules:
   - path_regex: \.yaml$
     # Encrypt fields with these names (case-insensitive regex)
     encrypted_regex: "^(.*password.*|.*secret.*|.*key.*|.*token.*|smtp_user)$"
+
+    # Only MAC encrypted fields. This allows the rest of the file to change
+    # without using SOPS to edit it.
+    mac_only_encrypted: true
+
     # Uncomment and configure one of the key providers below:
 
     # Option 1: age (recommended for local/personal use)
