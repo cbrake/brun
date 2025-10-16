@@ -428,7 +428,9 @@ only sensitive values are encrypted.
 
 **Selective Field Encryption:**
 
-You can configure SOPS to encrypt only sensitive fields (like passwords and API keys) while keeping the rest of your config readable. Create a `.sops.yaml` file in your repository root:
+You can configure SOPS to encrypt only sensitive fields (like passwords and API
+keys) while keeping the rest of your config readable. Create a `.sops.yaml` file
+in your repository root:
 
 ```yaml
 creation_rules:
@@ -437,7 +439,9 @@ creation_rules:
     age: your-public-key-here
 ```
 
-This will encrypt only fields matching the patterns (password, secret, key, token, etc.) while leaving structural fields like `name`, `script`, and `directory` in plaintext for easy review in version control.
+This will encrypt only fields matching the patterns (password, secret, key,
+token, etc.) while leaving structural fields like `name`, `script`, and
+`directory` in plaintext for easy review in version control.
 
 See [.sops.yaml](.sops.yaml) for a complete example configuration.
 
