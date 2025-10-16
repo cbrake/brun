@@ -1,66 +1,85 @@
-# BRun Configuration File for building the Yoe Distribution
-# https://github.com/YoeDistro/yoe-distro 
-# BRun should be run in daemon mode for this config.
+# Brun Configuration File
 # See https://github.com/cbrake/brun for documentation
-
 config:
-  state_location: /home/cbrake/.config/brun/state.yaml
-
+    state_location: /home/cbrake/.config/brun/state.yaml
 units:
-  # schedule builds at midnight, so we don't clog up
-  # workstation during day
-  - cron:
-      name: yoe-trigger
-      schedule: "0 0 * * *"
-      on_success:
-        - update-yoe
+    - cron:
+        name: yoe-trigger
+        schedule: 0 0 * * *
+        on_success:
+            - update-yoe
+    - git:
+        name: update-yoe
+        repository: /scratch4/yoe/yoe-distro
+        branch: master
+        reset: true
+        # disable polling as this is triggered by cron
+        # poll: 2m
+        # enable extra debug statements to help debug the git unit
+        # debug: true
+        on_failure:
+            - email
+        on_success:
+            - build-agx
+    - run:
+        name: build-agx
+        directory: /scratch4/yoe/yoe-distro
+        shell: bash
+        # use_pty: true
+        script: |
+            echo "Building AGX Orin"
+            # Set DOCKER_PSEUDO_TTY=no to disable TTY allocation in Docker.                                  ╎│
+            # This prevents bitbake from outputting verbose interactive progress                             ╎│
+            # lines that create massive logs/emails. The envsetup.sh script                                  ╎│
+            # respects this environment variable.                                                            ╎│
+            export DOCKER_PSEUDO_TTY=no
+            source envsetup.sh jetson-agx-orin-devkit
+            bitbake yoe-simpleiot-image
+        always:
+            - email
+            - build-rpi4
+    - run:
+        name: build-rpi4
+        directory: /scratch4/yoe/yoe-distro
+        shell: bash
+        script: |
+            echo "Building RPI4"
+            echo "Building AGX Orin"
+            export DOCKER_PSEUDO_TTY=no
+            source envsetup.sh rpi4-64
+            bitbake yoe-simpleiot-image
+        always:
+            - email
+    - email:
+        name: email
+        to:
+            - user@mail.com
+        from: user@mail.com
+        subject_prefix: BRun Ceres
+        smtp_host: smtp.mail.com
+        smtp_port: 587
+        # the following two fields are encrypted with SOPS
+        smtp_user: ENC[AES256_GCM,data:1P3vNhtpOTqLTih0mCX3LfQYiIM0OQ==,iv:1zBwO53EwTn3Mucy/m5CoDrADSW6PE4TBfbZdMtxzg4=,tag:dsCZ6UXrHGLrJ5l3r51lfA==,type:str]
+        smtp_password: ENC[AES256_GCM,data:FoyfM43I6NR6qdE=,iv:099/jt5vqaRHpIF+Zkb8be6lwZAyAKuCr9v9XdK4Hn8=,tag:ec2znZiyLbT9osO+ofaf8Q==,type:str]
+        smtp_use_tls: true
+        include_output: true
+        limit_lines: 100
 
-  # check if there are any updates and only build if there are updates.
-  # This unit updates the git workspace to the HEAD of the master
-  # branch.
-  - git:
-      name: update-yoe
-      repository: /scratch4/yoe/yoe-distro
-      branch: master
-      reset: true
-      # disable polling as this is triggered by cron
-      poll: 0
-      on_failure:
-        - email
-      on_success:
-        - build-agx
-
-  - run:
-      name: build-agx
-      directory: /scratch4/yoe/yoe-distro
-      shell: bash
-      script: |
-        echo "Building AGX Orin"
-        # Set DOCKER_PSEUDO_TTY=no to disable TTY allocation in Docker.
-        # This prevents bitbake from outputting verbose interactive progress
-        # lines that create massive logs/emails. The envsetup.sh script
-        # respects this environment variable.
-        export DOCKER_PSEUDO_TTY=no
-        source envsetup.sh jetson-agx-orin-devkit
-        bitbake yoe-simpleiot-image
-      always:
-        - email
-
-  - email:
-      name: email
-      to:
-        - user1@email.com
-        - user2@email.com
-      from: ci@email.com
-      subject_prefix: "BRun Yoe"
-      smtp_host: mail.email.com
-      smtp_port: 587
-      smtp_user: ci@email.com
-      smtp_password: "some password"
-      smtp_use_tls: true
-      include_output: true
-      # limit emails to last 100 lines to keep them
-      # reasonably short
-      limit_lines: 100
-    
-
+# SOPS is used to encrypt the sensitive user/password fields in this document. See
+# https://github.com/cbrake/brun/blob/main/README.md#secrets-management
+sops:
+    age:
+        - recipient: age1a0n5czrrjewj8xuq50v39w4qryxd0g0qs0875f846x2u9gwt9gasauw4fl
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBBYmlpWUd3aVVKVElNMFVQ
+            Y1RVK1FVcm1rdm9UaGRmTndXYStYWm1QL1RZCjF2TWo5c0ZBalVxUEo1TzQ1OGh1
+            d3hCdGQ5dEhCa1k0c0VLVzBHSlk2UjgKLS0tIHlqYXlQamJKdlMrb1ppajF1cXJa
+            Tjd3aDhBLzdFN1R1VGJyR0t0UzVGNW8KPsTN2huWHqkxYclU4aRHvzsX4c5qOszs
+            d6qsMSmbSBAGS0RWHpl4EYAvU06V9ZBL8JNkPMc3z7gbXJQhe83n0w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-10-16T17:43:12Z"
+    mac: ENC[AES256_GCM,data:hdeFPLlk1WgnDLDg33/Q3nM1+6E0DSFnCHaSOeA57NExgRB8gR8OhZotbR99rkRUiEseIY8FJm02zf38ECJI8lmZAgg4RdSPsQIfgPi/vH209snhsEuQ+2RH1OiaG8srTSOsKFcfSFqKSaeuXyP3NQLpGEYRVBVZQaizuvksN54=,iv:7otjGLgBB3Iz81nTceCEj1tJqwoJnuIdfuJcB3XZ7M8=,tag:eldkA0ySguG7Ww+gdfqFuw==,type:str]
+    encrypted_regex: ^(.*password.*|.*secret.*|.*key.*|.*token.*|smtp_user)$
+    mac_only_encrypted: true
+    version: 3.11.0
