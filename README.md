@@ -37,7 +37,9 @@ dependencies.
 - Monitor the `/etc` directory a server for changes.
 - Implemented a watchdog that reboots the system under certain conditions.
 - Run build/test/deploy pipelines.
-- Notify someone when CPU usage is too high or diskspace too low.
+- Notify someone when CPU usage is too high or disk space too low.
+
+## Table of Contents
 
 <!--toc:start-->
 
