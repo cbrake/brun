@@ -8,12 +8,44 @@
 <em>Trigger → Run</em>
 </p>
 
-Do you find tools like Github Actions or Ansible useful, but would like a simple
+Do you find tools like GitHub Actions or Ansible useful, but would like a simple
 way to do similar things natively? BRun is a native Linux automation tool that
 connects triggers (boot, cron, file changes, git commits) to actions (run
 scripts, send emails, log events, reboot). Build CI/CD pipelines, automate
 system tasks, or test embedded devices—all with a single binary and no
 dependencies.
+
+<!--toc:start-->
+
+- [BRun](#brun)
+  - [Example Configuration](#example-configuration)
+  - [Install](#install)
+    - [Example install on Linux:](#example-install-on-linux)
+    - [Autostart with systemd](#autostart-with-systemd)
+    - [Updating](#updating)
+  - [Usage](#usage)
+  - [Circular Dependency Protection](#circular-dependency-protection)
+  - [Logging](#logging)
+  - [State](#state)
+  - [Secrets Management](#secrets-management)
+  - [File format](#file-format)
+    - [Config](#config)
+  - [Units](#units)
+    - [Common Unit Fields](#common-unit-fields)
+    - [Start Unit](#start-unit)
+    - [Boot Unit](#boot-unit)
+    - [Run Unit](#run-unit)
+    - [Log Unit](#log-unit)
+    - [Count Unit](#count-unit)
+    - [Cron Unit](#cron-unit)
+    - [File Unit](#file-unit)
+    - [Git Unit](#git-unit)
+    - [Email Unit](#email-unit)
+    - [Email Receive Unit (TODO)](#email-receive-unit-todo)
+    - [Reboot Unit](#reboot-unit)
+  - [Program lifecycle](#program-lifecycle)
+  - [Status](#status)
+  <!--toc:end-->
 
 **Features/goals:**
 
@@ -626,13 +658,13 @@ conditions are truly met.
 
 ### Start Unit
 
-The Start trigger always fires when brun runs. This can be used to trigger other
+The Start trigger always fires when BRun runs. This can be used to trigger other
 units every time the program executes, regardless of boot state or other
 conditions.
 
 **Behavior:**
 
-- Always triggers on every brun run
+- Always triggers on every BRun
 - Does not maintain any state
 - Useful for unconditional execution pipelines
 
@@ -973,7 +1005,6 @@ removed files are detected as changes.
 - Stores file hashes in the state file
 - Triggers on first run (initial file state)
 - Ignores directories (only monitors regular files)
-- Uses doublestar library for recursive glob support
 - Works in both one-time and daemon modes
 
 **Pattern Syntax:**
@@ -989,9 +1020,9 @@ The file unit supports advanced glob patterns including:
 **Pattern Examples:**
 
 - `**/*.go` - all Go files recursively
-- `src/**/*.ts` - all TypeScript files under src/
+- `src/**/*.ts` - all TypeScript files under `src/`
 - `config/*.yaml` - config files non-recursively
-- `**/*.{html,css,js}` - multiple file types
+- `**/*.{html,css,js}` - multiple filetypes
 
 **State File Format:**
 
