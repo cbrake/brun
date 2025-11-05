@@ -8,9 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.0.16] - 2025-11-05
+
 ### Fixed
 
-- Cron triggers now skip runs that were missed by more than 60 seconds (e.g., due to system downtime), preventing unwanted catch-up behavior when the system comes back online after extended periods.
+- Cron triggers now skip runs that were missed by more than 60 seconds (e.g.,
+  due to system downtime), preventing unwanted catch-up behavior when the system
+  comes back online after extended periods. (#27)
 
 ## [0.0.15] - 2025-10-15
 
