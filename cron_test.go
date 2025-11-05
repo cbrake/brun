@@ -206,3 +206,95 @@ func TestCreateUnits_CronMissingSchedule(t *testing.T) {
 		t.Error("Expected error for missing schedule")
 	}
 }
+
+func TestCronTrigger_SkipMissedRun(t *testing.T) {
+	tempDir := t.TempDir()
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	state := NewState(stateFile)
+
+	// Create a cron trigger that runs daily at midnight
+	trigger := NewCronTrigger(
+		"test-cron-skip",
+		"0 0 * * *",
+		state,
+		[]string{"next-unit"},
+		nil,
+		nil,
+	)
+
+	ctx := context.Background()
+
+	// Simulate that the last execution was 2 days ago at 11 PM
+	// This means we missed yesterday's midnight run
+	twoDaysAgo := time.Now().Add(-48 * time.Hour)
+	if err := state.SetString("test-cron-skip", "last_execution", twoDaysAgo.Format(time.RFC3339)); err != nil {
+		t.Fatalf("Failed to set last_execution: %v", err)
+	}
+
+	// First check - should NOT trigger because we missed the scheduled time
+	// (we're way past the tolerance window)
+	shouldTrigger, err := trigger.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if shouldTrigger {
+		t.Error("Expected not to trigger for missed run (outside tolerance window)")
+	}
+
+	// Verify state was updated to current time (skipped the missed run)
+	if err := state.Load(); err != nil {
+		t.Fatalf("Failed to load state: %v", err)
+	}
+
+	lastExec, ok := state.GetString("test-cron-skip", "last_execution")
+	if !ok {
+		t.Error("Expected last_execution to be updated")
+	}
+
+	// Parse and verify it's recent (within last 5 seconds)
+	execTime, err := time.Parse(time.RFC3339, lastExec)
+	if err != nil {
+		t.Fatalf("Failed to parse execution time: %v", err)
+	}
+
+	if time.Since(execTime) > 5*time.Second {
+		t.Error("Execution time should be very recent (missed run was skipped and time updated to now)")
+	}
+}
+
+func TestCronTrigger_WithinToleranceWindow(t *testing.T) {
+	tempDir := t.TempDir()
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	state := NewState(stateFile)
+
+	// Create a cron trigger that runs every minute
+	trigger := NewCronTrigger(
+		"test-cron-tolerance",
+		"* * * * *",
+		state,
+		[]string{"next-unit"},
+		nil,
+		nil,
+	)
+
+	ctx := context.Background()
+
+	// Set last execution to 70 seconds ago
+	// For a every-minute cron, next scheduled time will be ~10 seconds ago
+	// (the most recent minute boundary), which is within the 60-second tolerance
+	seventySecondsAgo := time.Now().Add(-70 * time.Second)
+	if err := state.SetString("test-cron-tolerance", "last_execution", seventySecondsAgo.Format(time.RFC3339)); err != nil {
+		t.Fatalf("Failed to set last_execution: %v", err)
+	}
+
+	// Check - should trigger because we're within the tolerance window
+	shouldTrigger, err := trigger.Check(ctx)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if !shouldTrigger {
+		t.Error("Expected to trigger when within tolerance window of scheduled time")
+	}
+}

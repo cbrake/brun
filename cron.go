@@ -88,15 +88,47 @@ func (c *CronTrigger) Check(ctx context.Context) (bool, error) {
 	// Get the next scheduled time after the last execution
 	nextRun := sched.Next(lastExec)
 
-	// If the next scheduled run is in the past or now, we should trigger
-	if nextRun.Before(now) || nextRun.Equal(now) {
-		// Update last execution time
+	// Calculate how long ago the scheduled time was
+	timeSinceScheduled := now.Sub(nextRun)
+
+	// Define tolerance window (60 seconds to account for check interval + processing delays)
+	// The orchestrator checks every 10 seconds, but we need buffer for:
+	// - Processing delays
+	// - System load
+	// - Time for unit execution
+	// This ensures we catch scheduled runs within a reasonable window while
+	// avoiding catch-up behavior for truly missed runs (hours/days old)
+	const toleranceWindow = 60 * time.Second
+
+	// If the scheduled time is in the past
+	if nextRun.Before(now) {
+		if timeSinceScheduled > toleranceWindow {
+			// We missed the scheduled time - skip this run to avoid catch-up behavior
+			// Update last_execution to now so we can check for future runs
+			if err := c.state.SetString(c.name, "last_execution", now.Format(time.RFC3339)); err != nil {
+				return false, fmt.Errorf("failed to save execution time: %w", err)
+			}
+			log.Printf("Cron trigger '%s' skipped missed run (was scheduled for %v, now is %v)",
+				c.name, nextRun.Format(time.RFC3339), now.Format(time.RFC3339))
+			return false, nil
+		}
+
+		// We're within the tolerance window - fire
 		if err := c.state.SetString(c.name, "last_execution", now.Format(time.RFC3339)); err != nil {
 			return false, fmt.Errorf("failed to save execution time: %w", err)
 		}
 		return true, nil
 	}
 
+	// If the scheduled time is exactly now, fire
+	if nextRun.Equal(now) {
+		if err := c.state.SetString(c.name, "last_execution", now.Format(time.RFC3339)); err != nil {
+			return false, fmt.Errorf("failed to save execution time: %w", err)
+		}
+		return true, nil
+	}
+
+	// Future scheduled time - don't fire yet
 	return false, nil
 }
 
