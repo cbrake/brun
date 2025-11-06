@@ -42,7 +42,9 @@ func (s *BootTrigger) Type() string {
 }
 
 // Check returns true if this is the first run since system boot
-func (s *BootTrigger) Check(ctx context.Context) (bool, error) {
+func (s *BootTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
+	// Boot triggers work the same way regardless of mode
+	// They fire once per boot cycle
 	// Get current boot time
 	detector := NewBootDetector("")
 	currentBootTime, err := detector.GetBootTime()

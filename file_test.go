@@ -39,7 +39,7 @@ func TestFileTrigger_Check(t *testing.T) {
 	ctx := context.Background()
 
 	// First check should trigger (new files)
-	shouldTrigger, err := trigger.Check(ctx)
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestFileTrigger_Check(t *testing.T) {
 	}
 
 	// Second check should not trigger (no changes)
-	shouldTrigger, err = trigger.Check(ctx)
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestFileTrigger_Check(t *testing.T) {
 	}
 
 	// Third check should trigger (file modified)
-	shouldTrigger, err = trigger.Check(ctx)
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestFileTrigger_Check(t *testing.T) {
 	}
 
 	// Fourth check should not trigger (no new changes)
-	shouldTrigger, err = trigger.Check(ctx)
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestFileTrigger_Check(t *testing.T) {
 	}
 
 	// Fifth check should trigger (new file added)
-	shouldTrigger, err = trigger.Check(ctx)
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestFileTrigger_Check(t *testing.T) {
 	}
 
 	// Sixth check should trigger (file removed)
-	shouldTrigger, err = trigger.Check(ctx)
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -146,7 +146,7 @@ func TestFileTrigger_RecursivePattern(t *testing.T) {
 	ctx := context.Background()
 
 	// First check should trigger
-	shouldTrigger, err := trigger.Check(ctx)
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -315,7 +315,7 @@ func TestFileTrigger_InvalidPattern(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	_, err := trigger.Check(ctx)
+	_, err := trigger.Check(ctx, CheckModePolling)
 	if err == nil {
 		t.Error("Expected error for invalid pattern")
 	}

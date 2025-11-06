@@ -115,7 +115,10 @@ func (f *FileTrigger) filesStateToString(filesState map[string]string) string {
 }
 
 // Check returns true if files matching the pattern have changed
-func (f *FileTrigger) Check(ctx context.Context) (bool, error) {
+func (f *FileTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
+	// File triggers work the same way regardless of mode
+	// They fire when file content changes
+
 	// Get current files state
 	currentState, err := f.getFilesState()
 	if err != nil {

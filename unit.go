@@ -2,6 +2,29 @@ package brun
 
 import "context"
 
+// CheckMode indicates how a trigger unit's Check method is being called
+type CheckMode int
+
+const (
+	// CheckModePolling indicates Check is called during orchestrator's periodic polling cycle
+	CheckModePolling CheckMode = iota
+
+	// CheckModeManual indicates Check is called because another unit triggered this one
+	CheckModeManual
+)
+
+// String returns a human-readable string for the CheckMode
+func (m CheckMode) String() string {
+	switch m {
+	case CheckModePolling:
+		return "polling"
+	case CheckModeManual:
+		return "manual"
+	default:
+		return "unknown"
+	}
+}
+
 // Unit represents a unit of work in the CI system
 type Unit interface {
 	// Name returns the name of the unit
@@ -19,7 +42,8 @@ type TriggerUnit interface {
 	Unit
 
 	// Check returns true if the trigger condition is met
-	Check(ctx context.Context) (bool, error)
+	// mode indicates whether this is a polling check or a manual trigger from another unit
+	Check(ctx context.Context, mode CheckMode) (bool, error)
 
 	// OnSuccess returns the names of units to trigger on success
 	OnSuccess() []string
