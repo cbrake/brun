@@ -557,9 +557,9 @@ func TestGitTrigger_CheckModePolling_IntervalNotElapsed(t *testing.T) {
 		"test-git-interval",
 		repoPath,
 		"main",
-		false,           // reset
-		5*time.Second,   // poll interval
-		false,           // debug
+		false,         // reset
+		5*time.Second, // poll interval
+		false,         // debug
 		state,
 		[]string{"build"},
 		nil,
@@ -838,9 +838,9 @@ func TestGitTrigger_MultipleCheckModePolling(t *testing.T) {
 		"test-git-multiple-polling",
 		repoPath,
 		"main",
-		false,           // reset
-		2*time.Second,   // poll interval
-		false,           // debug
+		false,         // reset
+		2*time.Second, // poll interval
+		false,         // debug
 		state,
 		[]string{"build"},
 		nil,
