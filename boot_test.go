@@ -98,7 +98,7 @@ func TestBootTrigger_Check(t *testing.T) {
 	ctx := context.Background()
 
 	// First check should trigger
-	triggered, err := trigger.Check(ctx)
+	triggered, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestBootTrigger_Check(t *testing.T) {
 	}
 
 	// Second check should not trigger
-	triggered, err = trigger.Check(ctx)
+	triggered, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed on second call: %v", err)
 	}

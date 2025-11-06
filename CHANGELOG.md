@@ -8,6 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+## [0.0.17] - 2025-11-06
+
+- Git triggers now properly differentiate between orchestrator polling and
+  explicit triggering by other units. Git units without a `poll` interval no
+  longer participate in periodic polling, enabling pure event-driven workflows
+  where git checks only happen when explicitly triggered (e.g., by a cron unit).
+
 ## [0.0.16] - 2025-11-05
 
 ### Fixed

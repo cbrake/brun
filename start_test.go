@@ -24,7 +24,7 @@ func TestStartTrigger_Check(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	shouldTrigger, err := trigger.Check(ctx)
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Errorf("Check failed: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestStartTrigger_AlwaysTriggers(t *testing.T) {
 
 	// Check multiple times to ensure it always triggers
 	for i := 0; i < 5; i++ {
-		shouldTrigger, err := trigger.Check(ctx)
+		shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 		if err != nil {
 			t.Errorf("Check failed on iteration %d: %v", i, err)
 		}

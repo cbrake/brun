@@ -39,7 +39,8 @@ func (s *StartTrigger) Type() string {
 }
 
 // Check always returns true since this trigger fires on every run
-func (s *StartTrigger) Check(ctx context.Context) (bool, error) {
+func (s *StartTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
+	// Start always triggers, regardless of mode
 	return true, nil
 }
 

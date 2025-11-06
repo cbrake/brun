@@ -1126,10 +1126,12 @@ workspace and submodules are updated to the latest on the specified branch.
 - **reset** (optional): optionally reset the workspace to the state of the repo
   HEAD (`git reset --hard`)
 - **poll** (optional): polling interval for checking repository updates (e.g.,
-  "2m", "30s", "1h"). When set, the git unit actively checks for updates at the
-  specified interval in daemon mode. When omitted or set to empty string, the
-  unit operates in manual trigger mode and only checks for updates when
-  triggered by another unit (e.g., via `on_success`).
+  "2m", "30s", "1h"). When set, the git unit actively polls for updates at the
+  specified interval. When omitted, the unit operates in passive mode: it will
+  NOT check during orchestrator polling, but WILL check when explicitly
+  triggered by another unit (e.g., via `on_success`). This enables event-driven
+  workflows where git checks happen on-demand without continuous polling
+  overhead.
 - **debug** (optional): when true, logs detailed git operation messages (fetch,
   reset, submodule updates). Defaults to false.
 
@@ -1194,6 +1196,43 @@ units:
 
 This creates a continuous integration system that automatically builds and tests
 your code whenever changes are pushed to the repository.
+
+**Passive mode example (event-driven):**
+
+For efficient resource usage, you can configure git units without polling and
+trigger them explicitly:
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  # Check for git updates once per hour
+  - cron:
+      name: hourly-check
+      schedule: "0 * * * *"
+      on_success:
+        - check-repo
+
+  # Git unit in passive mode (no poll field)
+  - git:
+      name: check-repo
+      repository: /home/user/project
+      branch: main
+      # No poll field - only checks when triggered by cron
+      on_success:
+        - build
+
+  - run:
+      name: build
+      directory: /home/user/project
+      script: |
+        go build -o app ./cmd/app
+        go test -v ./...
+```
+
+This approach checks for git updates only when the cron triggers it, reducing
+system overhead while maintaining automated builds.
 
 ### Email Unit
 

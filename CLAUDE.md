@@ -31,6 +31,11 @@ BRun is a tool for running automated builds and tests with a focus on low-level 
 
 **cron.go**: Implements the `CronTrigger` which fires based on standard cron schedules. Uses a 60-second tolerance window to handle orchestrator check intervals and system delays. If a scheduled run is missed by more than the tolerance window (e.g., due to system downtime), that run is skipped to prevent catch-up behavior.
 
+**CheckMode Pattern**: The `TriggerUnit` interface uses a `CheckMode` parameter to differentiate between orchestrator polling (`CheckModePolling`) and explicit triggering by another unit (`CheckModeManual`). This allows triggers like GitTrigger to behave differently based on context:
+- **Polling mode**: Git units without a `poll` interval skip checks, enabling event-driven workflows
+- **Manual mode**: Git units always check when explicitly triggered, regardless of poll interval
+- Other triggers (cron, boot, start, file) behave identically in both modes
+
 ## Development
 
 ### Language and Dependencies

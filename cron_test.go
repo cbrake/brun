@@ -27,7 +27,7 @@ func TestCronTrigger_Check(t *testing.T) {
 	ctx := context.Background()
 
 	// First check - should trigger since no last execution
-	shouldTrigger, err := trigger.Check(ctx)
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -56,7 +56,7 @@ func TestCronTrigger_Check(t *testing.T) {
 	}
 
 	// Immediate second check - should not trigger (same minute)
-	shouldTrigger, err = trigger.Check(ctx)
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Second check failed: %v", err)
 	}
@@ -84,7 +84,7 @@ func TestCronTrigger_InvalidSchedule(t *testing.T) {
 	ctx := context.Background()
 
 	// Check should fail with invalid schedule
-	_, err := trigger.Check(ctx)
+	_, err := trigger.Check(ctx, CheckModePolling)
 	if err == nil {
 		t.Error("Expected error for invalid schedule")
 	}
@@ -234,7 +234,7 @@ func TestCronTrigger_SkipMissedRun(t *testing.T) {
 
 	// First check - should NOT trigger because we missed the scheduled time
 	// (we're way past the tolerance window)
-	shouldTrigger, err := trigger.Check(ctx)
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
@@ -290,7 +290,7 @@ func TestCronTrigger_WithinToleranceWindow(t *testing.T) {
 	}
 
 	// Check - should trigger because we're within the tolerance window
-	shouldTrigger, err := trigger.Check(ctx)
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}

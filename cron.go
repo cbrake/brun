@@ -50,7 +50,9 @@ func (c *CronTrigger) Type() string {
 }
 
 // Check returns true if the cron schedule has triggered since the last execution
-func (c *CronTrigger) Check(ctx context.Context) (bool, error) {
+func (c *CronTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
+	// Cron triggers work the same way regardless of mode
+	// The schedule determines when they fire
 	// Parse the schedule
 	sched, err := c.parser.Parse(c.schedule)
 	if err != nil {

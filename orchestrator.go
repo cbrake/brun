@@ -126,7 +126,8 @@ func (o *Orchestrator) checkAndExecuteTriggers(ctx context.Context, isStartup bo
 				continue
 			}
 
-			shouldTrigger, err := trigger.Check(ctx)
+			// Pass CheckModePolling during orchestrator polling
+			shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
 			if err != nil {
 				log.Printf("Error checking trigger '%s': %v", unit.Name(), err)
 				continue
@@ -298,7 +299,8 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 
 		// If the target is a trigger unit, check its condition before executing
 		if triggerUnit, ok := targetUnit.(TriggerUnit); ok {
-			shouldTrigger, err := triggerUnit.Check(ctx)
+			// Pass CheckModeManual when another unit triggers this one
+			shouldTrigger, err := triggerUnit.Check(ctx, CheckModeManual)
 			if err != nil {
 				log.Printf("Error checking trigger '%s': %v", unitName, err)
 				continue
@@ -337,7 +339,8 @@ func (o *Orchestrator) RunSingleUnit(ctx context.Context, unitName string, runTr
 	if runTriggers {
 		// For trigger units, check if the trigger condition is met first
 		if triggerUnit, ok := unit.(TriggerUnit); ok {
-			shouldTrigger, err := triggerUnit.Check(ctx)
+			// Pass CheckModeManual for manual execution
+			shouldTrigger, err := triggerUnit.Check(ctx, CheckModeManual)
 			if err != nil {
 				log.Printf("Error checking trigger '%s': %v", unitName, err)
 				return err
