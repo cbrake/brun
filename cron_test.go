@@ -281,11 +281,19 @@ func TestCronTrigger_WithinToleranceWindow(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Set last execution to 70 seconds ago
-	// For a every-minute cron, next scheduled time will be ~10 seconds ago
-	// (the most recent minute boundary), which is within the 60-second tolerance
-	seventySecondsAgo := time.Now().Add(-70 * time.Second)
-	if err := state.SetString("test-cron-tolerance", "last_execution", seventySecondsAgo.Format(time.RFC3339)); err != nil {
+	// Calculate a last execution time that guarantees the next scheduled time
+	// is within the tolerance window. We find the most recent minute boundary
+	// and set last execution to 30 seconds before that.
+	// This ensures next scheduled time is the recent minute boundary,
+	// which is guaranteed to be less than 60 seconds ago.
+	now := time.Now()
+	// Truncate to the most recent minute boundary
+	recentMinuteBoundary := now.Truncate(time.Minute)
+	// Set last execution to 30 seconds before the recent minute boundary
+	// For a * * * * * schedule, the next scheduled time after this will be
+	// the recent minute boundary, which is at most 59 seconds ago
+	lastExec := recentMinuteBoundary.Add(-30 * time.Second)
+	if err := state.SetString("test-cron-tolerance", "last_execution", lastExec.Format(time.RFC3339)); err != nil {
 		t.Fatalf("Failed to set last_execution: %v", err)
 	}
 
