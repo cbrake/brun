@@ -8,7 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
-### Changed
+## [0.0.18] - 2025-11-08
+
+### Fixed
+
+- Cron triggers no longer fire multiple times within the same scheduled minute, ensuring each scheduled run executes exactly once even when the orchestrator checks multiple times.
 
 ## [0.0.17] - 2025-11-06
 

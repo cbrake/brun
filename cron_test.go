@@ -45,14 +45,22 @@ func TestCronTrigger_Check(t *testing.T) {
 		t.Error("Expected last_execution to be saved")
 	}
 
-	// Parse and verify it's recent
+	// Parse and verify it's a valid time
 	execTime, err := time.Parse(time.RFC3339, lastExec)
 	if err != nil {
 		t.Fatalf("Failed to parse execution time: %v", err)
 	}
 
-	if time.Since(execTime) > 5*time.Second {
-		t.Error("Execution time should be very recent")
+	// With the fix, we now save the scheduled time (minute boundary) not current time
+	// So execution time could be up to 60 seconds in the past
+	// Just verify it's not too far in the past (within 2 minutes to be safe)
+	if time.Since(execTime) > 2*time.Minute {
+		t.Errorf("Execution time should be recent (within 2 minutes), but was %v ago", time.Since(execTime))
+	}
+
+	// Verify it's on a minute boundary (seconds = 0) since we save scheduled time
+	if execTime.Second() != 0 {
+		t.Errorf("Expected execution time to be on minute boundary (seconds=0), got %d seconds", execTime.Second())
 	}
 
 	// Immediate second check - should not trigger (same minute)
@@ -304,5 +312,73 @@ func TestCronTrigger_WithinToleranceWindow(t *testing.T) {
 	}
 	if !shouldTrigger {
 		t.Error("Expected to trigger when within tolerance window of scheduled time")
+	}
+}
+
+func TestCronTrigger_NoDoubleTrigger(t *testing.T) {
+	tempDir := t.TempDir()
+	stateFile := filepath.Join(tempDir, "state.yaml")
+
+	state := NewState(stateFile)
+
+	// Create a cron trigger that runs every minute
+	// This ensures the test works regardless of when it's run
+	trigger := NewCronTrigger(
+		"test-cron-double",
+		"* * * * *",
+		state,
+		[]string{"next-unit"},
+		nil,
+		nil,
+	)
+
+	ctx := context.Background()
+
+	// Clear the state to simulate first run
+	state.data = make(map[string]any)
+	if err := state.Save(); err != nil {
+		t.Fatalf("Failed to clear state: %v", err)
+	}
+
+	// First check - should trigger because no previous execution and we're past a minute boundary
+	shouldTrigger, err := trigger.Check(ctx, CheckModePolling)
+	if err != nil {
+		t.Fatalf("First check failed: %v", err)
+	}
+	if !shouldTrigger {
+		t.Error("Expected first check to trigger")
+	}
+
+	// Reload state to ensure we're reading what was saved
+	if err := state.Load(); err != nil {
+		t.Fatalf("Failed to reload state: %v", err)
+	}
+
+	// Second check immediately after (simulating orchestrator check 10 seconds later)
+	// This should NOT trigger because we already handled the current minute's run
+	shouldTrigger, err = trigger.Check(ctx, CheckModePolling)
+	if err != nil {
+		t.Fatalf("Second check failed: %v", err)
+	}
+	if shouldTrigger {
+		t.Error("Expected second check NOT to trigger (this would be the double-trigger bug)")
+	}
+
+	// Verify that the last_execution time is set to the scheduled time (minute boundary)
+	// not to "now" which would be a few seconds after the minute boundary
+	lastExecStr, ok := state.GetString("test-cron-double", "last_execution")
+	if !ok {
+		t.Fatal("Expected last_execution to be saved")
+	}
+
+	lastExecTime, err := time.Parse(time.RFC3339, lastExecStr)
+	if err != nil {
+		t.Fatalf("Failed to parse last_execution: %v", err)
+	}
+
+	// The saved time should be on a minute boundary (seconds = 0) since we save the scheduled time
+	// Check that seconds are 0 (indicating we saved the scheduled time, not current time)
+	if lastExecTime.Second() != 0 {
+		t.Errorf("Expected last_execution to be saved with 0 seconds (scheduled time), got %d seconds", lastExecTime.Second())
 	}
 }
