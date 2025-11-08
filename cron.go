@@ -68,7 +68,9 @@ func (c *CronTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
 		nextRun := sched.Next(now.Add(-1 * time.Minute))
 		if nextRun.Before(now) || nextRun.Equal(now) {
 			// Schedule says we should have run, so trigger
-			if err := c.state.SetString(c.name, "last_execution", now.Format(time.RFC3339)); err != nil {
+			// Save the scheduled time (nextRun) rather than current time (now)
+			// This ensures subsequent checks correctly identify we've handled this scheduled run
+			if err := c.state.SetString(c.name, "last_execution", nextRun.Format(time.RFC3339)); err != nil {
 				return false, fmt.Errorf("failed to save execution time: %w", err)
 			}
 			return true, nil
@@ -116,7 +118,9 @@ func (c *CronTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
 		}
 
 		// We're within the tolerance window - fire
-		if err := c.state.SetString(c.name, "last_execution", now.Format(time.RFC3339)); err != nil {
+		// Save the scheduled time (nextRun) rather than current time (now)
+		// This ensures subsequent checks correctly identify we've handled this scheduled run
+		if err := c.state.SetString(c.name, "last_execution", nextRun.Format(time.RFC3339)); err != nil {
 			return false, fmt.Errorf("failed to save execution time: %w", err)
 		}
 		return true, nil
@@ -124,7 +128,9 @@ func (c *CronTrigger) Check(ctx context.Context, mode CheckMode) (bool, error) {
 
 	// If the scheduled time is exactly now, fire
 	if nextRun.Equal(now) {
-		if err := c.state.SetString(c.name, "last_execution", now.Format(time.RFC3339)); err != nil {
+		// Save the scheduled time (nextRun) rather than current time (now)
+		// This ensures subsequent checks correctly identify we've handled this scheduled run
+		if err := c.state.SetString(c.name, "last_execution", nextRun.Format(time.RFC3339)); err != nil {
 			return false, fmt.Errorf("failed to save execution time: %w", err)
 		}
 		return true, nil

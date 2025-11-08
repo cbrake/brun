@@ -29,7 +29,7 @@ BRun is a tool for running automated builds and tests with a focus on low-level 
 
 **config.go**: Handles YAML configuration parsing and unit instantiation. The config format uses a wrapper pattern to support multiple unit types. The `state_location` field is required in all configuration files. Supports automatic decryption of SOPS-encrypted config files at runtime.
 
-**cron.go**: Implements the `CronTrigger` which fires based on standard cron schedules. Uses a 60-second tolerance window to handle orchestrator check intervals and system delays. If a scheduled run is missed by more than the tolerance window (e.g., due to system downtime), that run is skipped to prevent catch-up behavior.
+**cron.go**: Implements the `CronTrigger` which fires based on standard cron schedules. Uses a 60-second tolerance window to handle orchestrator check intervals and system delays. If a scheduled run is missed by more than the tolerance window (e.g., due to system downtime), that run is skipped to prevent catch-up behavior. Saves the scheduled time (minute boundary) rather than the current time to prevent double-triggering on subsequent checks within the same minute.
 
 **CheckMode Pattern**: The `TriggerUnit` interface uses a `CheckMode` parameter to differentiate between orchestrator polling (`CheckModePolling`) and explicit triggering by another unit (`CheckModeManual`). This allows triggers like GitTrigger to behave differently based on context:
 - **Polling mode**: Git units without a `poll` interval skip checks, enabling event-driven workflows
