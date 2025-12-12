@@ -10,6 +10,8 @@ and this project adheres to
 
 ### Changed
 
+## [0.0.19] - 2025-11-09
+
 - User systemd services now include SSH agent support by default, enabling Git
   units to work with SSH repositories without manual configuration.
 
