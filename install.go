@@ -170,6 +170,7 @@ After=network.target
 [Service]
 Type=%s
 ExecStart=%s
+Environment=SSH_AUTH_SOCK=%%t/ssh-agent.socket
 StandardOutput=journal
 StandardError=journal
 Restart=%s

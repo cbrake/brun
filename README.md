@@ -229,6 +229,35 @@ root, otherwise as the user who runs the install.
 
 If a config file does not exist, one is created.
 
+**SSH Authentication for Git Units:**
+
+If you're using Git units with SSH repositories, the generated user service file
+automatically includes SSH agent support. The service file includes:
+
+```ini
+Environment=SSH_AUTH_SOCK=%t/ssh-agent.socket
+```
+
+The `%t` specifier expands to your user runtime directory (typically
+`/run/user/$UID`). This setting is harmless if you don't use SSH - Git will
+simply use other authentication methods (HTTPS, deploy keys, etc.).
+
+If your SSH agent uses a different socket path, edit
+`~/.config/systemd/user/brun.service` and reload:
+
+```bash
+systemctl --user daemon-reload
+systemctl --user restart brun.service
+```
+
+**Alternative SSH Authentication Methods:**
+
+- **Deploy Keys**: Use repository-specific SSH keys that don't require an agent
+- **HTTPS with Credentials**: Use HTTPS URLs with credential storage instead of
+  SSH
+- **System Services**: For root services, configure a dedicated service user
+  with its own SSH key
+
 ### Updating
 
 After initial installation, the `brun update` command can be used to update to
@@ -1134,6 +1163,13 @@ workspace and submodules are updated to the latest on the specified branch.
   overhead.
 - **debug** (optional): when true, logs detailed git operation messages (fetch,
   reset, submodule updates). Defaults to false.
+
+**SSH Authentication:**
+
+When using SSH-based Git repositories with systemd, the service requires access
+to your SSH agent. See the
+[Autostart with systemd](#autostart-with-systemd) section for configuration
+details on setting the `SSH_AUTH_SOCK` environment variable.
 
 **Behavior:**
 
