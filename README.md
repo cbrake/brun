@@ -44,6 +44,7 @@ dependencies.
 <!--toc:start-->
 
 - [BRun](#brun)
+  - [Table of Contents](#table-of-contents)
   - [Example Configuration](#example-configuration)
   - [Install](#install)
     - [Example install on Linux:](#example-install-on-linux)
@@ -1167,9 +1168,9 @@ workspace and submodules are updated to the latest on the specified branch.
 **SSH Authentication:**
 
 When using SSH-based Git repositories with systemd, the service requires access
-to your SSH agent. See the
-[Autostart with systemd](#autostart-with-systemd) section for configuration
-details on setting the `SSH_AUTH_SOCK` environment variable.
+to your SSH agent. See the [Autostart with systemd](#autostart-with-systemd)
+section for configuration details on setting the `SSH_AUTH_SOCK` environment
+variable.
 
 **Behavior:**
 
