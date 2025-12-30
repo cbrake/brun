@@ -283,6 +283,13 @@ func (o *Orchestrator) processTriggers(ctx context.Context, unit Unit, execErr e
 			emailUnit.SetTriggerError(execErr)
 		}
 
+		// If it's an ntfy unit, pass the output, triggering unit name, and error
+		if ntfyUnit, ok := targetUnit.(*NtfyUnit); ok {
+			ntfyUnit.SetOutput(output)
+			ntfyUnit.SetTriggeringUnit(unit.Name())
+			ntfyUnit.SetTriggerError(execErr)
+		}
+
 		// Check if this unit is already in the current call stack (circular dependency)
 		inCallStack := false
 		for _, stackUnit := range callStack {

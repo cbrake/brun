@@ -5,6 +5,7 @@ GCP
 KMS
 Lifecycle
 Mailgun
+PTY
 RFC3339
 SHA256
 STARTTLS
@@ -13,6 +14,7 @@ TODO
 TTY
 Yocto
 cron
+ntfy
 robfig
 smtp
 systemd

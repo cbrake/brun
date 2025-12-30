@@ -1,0 +1,55 @@
+# Ntfy notification test
+#
+# To run this test:
+#   1. Subscribe to notifications: open https://ntfy.sh/brun-test123 in browser
+#      (or use the ntfy app and subscribe to "brun-test123")
+#   2. Run: ./brun run examples/ntfy-test.yaml
+#
+# Expected: Two notifications - one success, one failure
+
+config:
+  state_location: /tmp/brun-ntfy-test-state.yaml
+
+units:
+  - start:
+      name: start
+      on_success:
+        - test-success
+        - test-failure
+
+  # Test successful run -> ntfy notification
+  - run:
+      name: test-success
+      script: |
+        echo "This is a successful build"
+        echo "Line 2 of output"
+        echo "Line 3 of output"
+      on_success:
+        - notify-success
+
+  # Test failed run -> ntfy notification
+  - run:
+      name: test-failure
+      script: |
+        echo "This build will fail"
+        echo "Error: something went wrong"
+        exit 1
+      on_failure:
+        - notify-failure
+
+  - ntfy:
+      name: notify-success
+      topic: brun-test124
+      title_prefix: BRun Success
+      priority: default
+      tags: white_check_mark,tada
+      include_output: true
+
+  - ntfy:
+      name: notify-failure
+      topic: brun-test124
+      title_prefix: BRun Failure
+      priority: high
+      tags: warning,skull
+      include_output: true
+      limit_lines: 10

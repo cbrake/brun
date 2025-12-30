@@ -1271,6 +1271,72 @@ units:
       file: /var/log/brun/errors.log
 ```
 
+### Ntfy Unit
+
+The ntfy unit allows notifications be sent out using the
+[ntfy.sh](https://ntfy.sh/) service.
+
+**Fields:**
+
+- **`topic`** (required): Ntfy topic to post to
+- **`server`** (optional): Ntfy server URL. Defaults to `https://ntfy.sh`
+- **`title_prefix`** (optional): Notification title prefix. ':
+  <unit-name>:<success|fail>' is appended after prefix and is always included
+- **`priority`** (optional): Notification priority (min, low, default, high,
+  urgent)
+- **`tags`** (optional): Comma-separated tags/emojis for the notification
+- **`include_output`** (optional): Include captured output from triggering unit.
+  Defaults to true
+- **`limit_lines`** (optional): Limit number of output lines included in
+  notification
+
+**Behavior:**
+
+- Sends notifications via HTTP POST to ntfy.sh (or self-hosted server)
+- Can include output from the unit that triggered it (useful for log/error
+  reporting)
+- Title automatically includes triggering unit name and success/fail status
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      on_success:
+        - build
+
+  - run:
+      name: build
+      script: |
+        go build -o brun ./cmd/brun
+        go test -v
+      on_failure:
+        - notify-failure
+      on_success:
+        - notify-success
+
+  - ntfy:
+      name: notify-failure
+      topic: my-build-alerts
+      title_prefix: Build Failed
+      priority: high
+      tags: warning,skull
+      include_output: true
+      limit_lines: 50
+
+  - ntfy:
+      name: notify-success
+      topic: my-build-alerts
+      title_prefix: Build Succeeded
+      priority: default
+      tags: white_check_mark
+      include_output: false
+```
+
 ### Reboot Unit
 
 The reboot unit logs and reboots the system. This is typically used in reboot
