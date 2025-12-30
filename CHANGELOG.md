@@ -8,7 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
-### Changed
+## [0.0.20] - 2025-12-30
+
+### Added
+
+- New ntfy unit for sending push notifications via [ntfy.sh](https://ntfy.sh/).
+  Get instant alerts on your phone or desktop when builds succeed or fail.
+  Supports custom servers for self-hosted ntfy instances, notification priority
+  levels, emoji tags, and automatic inclusion of build output in notifications.
 
 ## [0.0.19] - 2025-11-09
 
@@ -82,10 +89,10 @@ and this project adheres to
 
 ### Added
 
-- Graceful shutdown now waits for active units to complete when you press Ctrl+C
-  or send a termination signal. BRun will wait for running units to finish
-  before exiting, preventing interruption of critical operations like builds,
-  deploys, or backups.
+- Graceful shutdown now waits for active units to complete when you press
+  `Ctrl+C` or send a termination signal. BRun will wait for running units to
+  finish before exiting, preventing interruption of critical operations like
+  builds, deploys, or backups.
 
 ## [0.0.8] - 2025-10-08
 
@@ -107,10 +114,10 @@ and this project adheres to
 
 ### Added
 
-- Version information now displays when running brun, helping you track which
+- Version information now displays when running BRun helping you track which
   version you're using.
 - Git trigger now supports `poll` field to set a custom polling interval (e.g.,
-  "2m", "30s", "5m"), giving you control over how often repositories are checked
+  `2m`, `30s`, `5m`), giving you control over how often repositories are checked
   for updates.
 - Git trigger now supports `debug` field to enable detailed logging of git
   operations (fetch, reset, submodule updates) when troubleshooting.
@@ -148,7 +155,7 @@ and this project adheres to
 - Run units now support optional `shell` configuration field to specify which
   shell to use (bash, sh, etc.). Defaults to 'sh' when not specified.
 - Run units now support optional `use_pty` configuration field to wrap commands
-  with `script` for pseudo-TTY support. Useful for tools like bitbake that
+  with `script` for pseudo-TTY support. Useful for tools like BitBake that
   require a TTY environment.
 - Added `update` command to automatically update BRun to the latest release from
   GitHub.

@@ -23,16 +23,17 @@ type Config struct {
 
 // UnitConfigWrapper wraps different unit configuration types
 type UnitConfigWrapper struct {
-	Start  *StartConfig  `yaml:"start,omitempty"`
 	Boot   *BootConfig   `yaml:"boot,omitempty"`
-	Reboot *RebootConfig `yaml:"reboot,omitempty"`
-	Run    *RunConfig    `yaml:"run,omitempty"`
-	Log    *LogConfig    `yaml:"log,omitempty"`
 	Count  *CountConfig  `yaml:"count,omitempty"`
 	Cron   *CronConfig   `yaml:"cron,omitempty"`
 	Email  *EmailConfig  `yaml:"email,omitempty"`
 	File   *FileConfig   `yaml:"file,omitempty"`
 	Git    *GitConfig    `yaml:"git,omitempty"`
+	Log    *LogConfig    `yaml:"log,omitempty"`
+	Ntfy   *NtfyConfig   `yaml:"ntfy,omitempty"`
+	Reboot *RebootConfig `yaml:"reboot,omitempty"`
+	Run    *RunConfig    `yaml:"run,omitempty"`
+	Start  *StartConfig  `yaml:"start,omitempty"`
 }
 
 // LoadConfig loads a configuration file from the given path.
@@ -171,6 +172,42 @@ func (c *Config) CreateUnits() ([]Unit, error) {
 			unit := NewLogUnit(
 				cfg.Name,
 				cfg.File,
+				cfg.OnSuccess,
+				cfg.OnFailure,
+				cfg.Always,
+			)
+			units = append(units, unit)
+		}
+
+		if wrapper.Ntfy != nil {
+			cfg := wrapper.Ntfy
+			if cfg.Name == "" {
+				return nil, fmt.Errorf("unit %d: name is required", i)
+			}
+			if cfg.Topic == "" {
+				return nil, fmt.Errorf("unit %d: topic is required", i)
+			}
+
+			// Set defaults
+			server := cfg.Server
+			if server == "" {
+				server = "https://ntfy.sh"
+			}
+
+			includeOutput := true
+			if cfg.IncludeOutput != nil {
+				includeOutput = *cfg.IncludeOutput
+			}
+
+			unit := NewNtfyUnit(
+				cfg.Name,
+				cfg.Topic,
+				server,
+				cfg.TitlePrefix,
+				cfg.Priority,
+				cfg.Tags,
+				includeOutput,
+				cfg.LimitLines,
 				cfg.OnSuccess,
 				cfg.OnFailure,
 				cfg.Always,
