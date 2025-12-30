@@ -1289,7 +1289,8 @@ The ntfy unit allows notifications be sent out using the
 - **`include_output`** (optional): Include captured output from triggering unit.
   Defaults to true
 - **`limit_lines`** (optional): Limit number of output lines included in
-  notification
+  notification. 20 lines is a good number. More than that, the Android app seems
+  to turn the log into an attachment.
 
 **Behavior:**
 
