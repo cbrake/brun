@@ -19,7 +19,7 @@ dependencies.
 
 - ✨ **simple!!!**
 - ⚡ **fast!!!**
-- 📦 no dependencies -- [install](#example-install-on-linux) a single statically
+- 📦 no dependencies - [install](#example-install-on-linux) a single statically
   linked binary and go for it ...
 - 🛠️ built-in [units](#units) for common tasks like boot, scripts, cron, email,
   git, file watching
@@ -215,11 +215,11 @@ fi
 rm ${BINARY}
 ```
 
-### Autostart with systemd
+### Auto Start with Systemd
 
-If you would like to install a systemd unit to run brun automatically, then run:
+If you would like to install a systemd unit to run BRun automatically, then run:
 
-`brun install` (run brun once then exit)
+`brun install` (run BRun once then exit)
 
 or
 
@@ -369,8 +369,8 @@ In this example:
 - `start-trigger` triggers `task-a`
 - `task-a` triggers `task-b`
 - `task-b` attempts to trigger `task-a`, but it's already in the call stack
-- The circular trigger is prevented, and the log shows: "Unit 'task-a' already
-  in call stack, skipping to prevent circular dependency"
+- The circular trigger is prevented, and the log shows:
+  `"Unit 'task-a' already in call stack, skipping to prevent circular dependency"`
 
 **Example - Multiple triggers allowed:**
 
@@ -409,7 +409,7 @@ In this example:
 
 ## Logging
 
-By default, logging is sent to STDOUT, and each unit logs:
+By default, logging is sent to `STDOUT`, and each unit logs:
 
 - when it triggers or runs
 - any errors
@@ -507,12 +507,12 @@ This will encrypt only fields matching the patterns (password, secret, key,
 token, etc.) while leaving structural fields like `name`, `script`, and
 `directory` in plaintext for easy review in version control.
 
-See [.sops.yaml](.sops.yaml) for a complete example configuration.
+See [`.sops.yaml`](.sops.yaml) for a complete example configuration.
 
-## File format
+## File Format
 
 YAML is used for the BRun config file and is similar to config files used in
-Gitlab CI/CD, Drone, Ansible, etc.
+GitLab CI/CD, Drone, Ansible, etc.
 
 The configuration is composed of chainable units. Each unit can trigger
 additional units. This allows us to start/sequence operations and create
@@ -529,8 +529,8 @@ config:
 
 **Fields:**
 
-- **state_location** (required): Path to the state file where units store their
-  state between runs.
+- `**state_location**` (required): Path to the state file where units store
+  their state between runs.
   - Defaults to `/var/lib/brun/state.yaml` for root installs
   - Defaults to `~/.config/brun/state.yaml` for user installs
 
@@ -670,14 +670,15 @@ BRun supports the following unit types:
 
 All units share the following common fields:
 
-- **name** (required): A unique identifier for the unit. This name is used to
+- `**name**` (required): A unique identifier for the unit. This name is used to
   reference the unit when triggering it from other units.
-- **on_success** (optional): An array of unit names to trigger when this unit
+- `**on_success**` (optional): An array of unit names to trigger when this unit
   completes successfully.
-- **on_failure** (optional): An array of unit names to trigger when this unit
+- `**on_failure**` (optional): An array of unit names to trigger when this unit
   fails.
-- **always** (optional): An array of unit names to trigger regardless of whether
-  this unit succeeds or fails. These units run after success/failure triggers.
+- `**always**` (optional): An array of unit names to trigger regardless of
+  whether this unit succeeds or fails. These units run after success/failure
+  triggers.
 
 **Trigger unit behavior:**
 

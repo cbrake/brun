@@ -1,6 +1,7 @@
 BRun
 BitBake
 CD
+GCP
 KMS
 Mailgun
 RFC3339
