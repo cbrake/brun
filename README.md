@@ -48,14 +48,14 @@ dependencies.
   - [Example Configuration](#example-configuration)
   - [Install](#install)
     - [Example install on Linux:](#example-install-on-linux)
-    - [Autostart with systemd](#autostart-with-systemd)
+    - [Auto Start with Systemd](#auto-start-with-systemd)
     - [Updating](#updating)
   - [Usage](#usage)
   - [Circular Dependency Protection](#circular-dependency-protection)
   - [Logging](#logging)
   - [State](#state)
   - [Secrets Management](#secrets-management)
-  - [File format](#file-format)
+  - [File Format](#file-format)
     - [Config](#config)
   - [Units](#units)
     - [Common Unit Fields](#common-unit-fields)
@@ -670,13 +670,13 @@ BRun supports the following unit types:
 
 All units share the following common fields:
 
-- `**name**` (required): A unique identifier for the unit. This name is used to
+- **`name`** (required): A unique identifier for the unit. This name is used to
   reference the unit when triggering it from other units.
-- `**on_success**` (optional): An array of unit names to trigger when this unit
+- **`on_success`** (optional): An array of unit names to trigger when this unit
   completes successfully.
-- `**on_failure**` (optional): An array of unit names to trigger when this unit
+- **`on_failure`** (optional): An array of unit names to trigger when this unit
   fails.
-- `**always**` (optional): An array of unit names to trigger regardless of
+- **`always`** (optional): An array of unit names to trigger regardless of
   whether this unit succeeds or fails. These units run after success/failure
   triggers.
 
