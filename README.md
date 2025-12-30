@@ -59,17 +59,17 @@ dependencies.
     - [Config](#config)
   - [Units](#units)
     - [Common Unit Fields](#common-unit-fields)
-    - [Start Unit](#start-unit)
     - [Boot Unit](#boot-unit)
-    - [Run Unit](#run-unit)
-    - [Log Unit](#log-unit)
     - [Count Unit](#count-unit)
     - [Cron Unit](#cron-unit)
-    - [File Unit](#file-unit)
-    - [Git Unit](#git-unit)
     - [Email Unit](#email-unit)
     - [Email Receive Unit (TODO)](#email-receive-unit-todo)
+    - [File Unit](#file-unit)
+    - [Git Unit](#git-unit)
+    - [Log Unit](#log-unit)
     - [Reboot Unit](#reboot-unit)
+    - [Run Unit](#run-unit)
+    - [Start Unit](#start-unit)
   - [Program Lifecycle](#program-lifecycle)
   - [Status](#status)
   <!--toc:end-->
@@ -689,32 +689,6 @@ the git unit will only execute if there are actual git updates detected. This
 prevents unnecessary operations and ensures triggers only fire when their
 conditions are truly met.
 
-### Start Unit
-
-The Start trigger always fires when BRun runs. This can be used to trigger other
-units every time the program executes, regardless of boot state or other
-conditions.
-
-**Behavior:**
-
-- Always triggers on every BRun
-- Does not maintain any state
-- Useful for unconditional execution pipelines
-
-**Configuration example:**
-
-```yaml
-config:
-  state_location: /var/lib/brun/state.yaml
-
-units:
-  - start:
-      name: start-trigger
-      on_success:
-        - build-unit
-        - test-unit
-```
-
 ### Boot Unit
 
 The boot unit triggers if this is the first time the program has been run since
@@ -749,122 +723,6 @@ When the boot trigger fires successfully, it will trigger the units listed in
 
 The boot time is automatically stored in the common state file under the unit's
 name.
-
-### Run Unit
-
-The Run unit executes arbitrary shell commands or scripts. This is the primary
-execution unit for running builds, tests, or any other commands. The exit code
-determines success or failure, which then triggers the appropriate units.
-
-Multiple Run units can be defined in a configuration file to create build and
-test pipelines.
-
-**Fields:**
-
-- **`script`** (required): Shell commands to execute. Can be a single command or
-  a multiline script
-- **`directory`** (optional): Working directory where the script will be
-  executed. Defaults to the directory where BRun was invoked
-- **`timeout`** (optional): Time out duration for the task to complete (e.g.,
-  `30s`, `5m`, `1h`, `1h30m`). If no timeout is specified, it runs until
-  completion. If the task times out, an error message is logged.
-- **`shell`** (optional): specify shell to use when running command (bash,
-  etc.). By default, 'sh' is used.
-- **`use_pty`** (optional): when set to true, wraps the command with `script` to
-  provide a pseudo-TTY. This is useful for tools like BitBake that require a TTY
-  environment. Default is false.
-
-**Behavior:**
-
-- The script is executed using the system shell
-- Exit code 0 is considered success and triggers `on_success` units
-- Nonzero exit codes are considered failures and trigger `on_failure` units
-- Both `STDOUT` and `STDERR` are logged
-
-**Configuration example:**
-
-```yaml
-config:
-  state_location: /var/lib/brun/state.yaml
-
-units:
-  - boot:
-      name: boot-trigger
-      on_success:
-        - build
-
-  - run:
-      name: build
-      directory: /home/user/project
-      script: |
-        go build -o brun ./cmd/brun
-        go test -v
-      on_success:
-        - deploy
-      on_failure:
-        - notify-failure
-
-  - run:
-      name: deploy
-      script: |
-        ./deploy.sh
-
-  - run:
-      name: bitbake-build
-      shell: bash
-      use_pty: true
-      script: |
-        source oe-init-build-env
-        bitbake core-image-minimal
-      timeout: 2h
-```
-
-### Log Unit
-
-The Log unit writes log entries to a file. This is useful for recording events,
-errors, or other information during pipeline execution. The logfile is created
-if it doesn't exist, and entries are appended with timestamps.
-
-**Fields:**
-
-- **`file`** (required): Path to the logfile where entries will be written
-
-**Behavior:**
-
-- Creates the logfile and parent directories if they don't exist
-- Appends log entries with timestamps
-- File permissions are set to 0644
-- Directory permissions are set to 0755
-
-**Configuration example:**
-
-```yaml
-config:
-  state_location: /var/lib/brun/state.yaml
-
-units:
-  - start:
-      name: start-trigger
-      on_success:
-        - build
-      always:
-        - log-run
-
-  - run:
-      name: build
-      script: |
-        go build -o brun ./cmd/brun
-      on_failure:
-        - log-error
-
-  - log:
-      name: log-run
-      file: /var/log/brun/pipeline.log
-
-  - log:
-      name: log-error
-      file: /var/log/brun/errors.log
-```
 
 ### Count Unit
 
@@ -1018,6 +876,100 @@ units:
         echo "Checking services..."
         # health check commands here
 ```
+
+### Email Unit
+
+The Email unit sends email notifications with optional output from triggering
+units. This is useful for alerting on build failures, test results, or other
+important events. Supports both plain SMTP and STARTTLS encryption.
+
+**Fields:**
+
+- **`to`** (required): Array of email addresses to send to
+- **`from`** (required): Sender email address
+- **`subject_prefix`** (optional): Email subject line prefix. ':
+  <unit-name>:<success|fail>' is appended after prefix and is always included.
+- **`smtp_host`** (required): SMTP server hostname
+- **`smtp_port`** (optional): SMTP server port. Defaults to 587 (submission
+  port)
+- **`smtp_user`** (optional): SMTP username for authentication
+- **`smtp_password`** (optional): SMTP password for authentication
+- **`smtp_use_tls`** (optional): Enable STARTTLS encryption. Defaults to true
+- **`include_output`** (optional): Include captured output from triggering unit.
+  Defaults to true
+- **`limit_lines`** (optional): limit number email lines emailed to number
+  specified.
+
+**Behavior:**
+
+- Sends plain text emails using SMTP
+- Can include output from the unit that triggered it (useful for log/error
+  reporting)
+- Supports SMTP authentication
+- STARTTLS encryption enabled by default
+- Works with common email providers (Gmail, SendGrid, Mailgun, etc.)
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      on_success:
+        - build
+
+  - run:
+      name: build
+      script: |
+        go build -o brun ./cmd/brun
+        go test -v
+      on_failure:
+        - email-failure
+
+  - email:
+      name: email-failure
+      to:
+        - admin@example.com
+        - alerts@example.com
+      from: brun@example.com
+      subject_prefix: "Build Alert"
+      smtp_host: smtp.gmail.com
+      smtp_port: 587
+      smtp_user: brun@example.com
+      smtp_password: your-app-password
+      smtp_use_tls: true
+      include_output: true
+```
+
+This will send emails with subjects like:
+
+- `Build Alert: build:success` (on success)
+- `Build Alert: build:fail` (on failure)
+
+**Gmail example:**
+
+For Gmail, you need to use an app-specific password:
+
+```yaml
+- email:
+    name: notify-admin
+    to:
+      - you@gmail.com
+    from: your-app@gmail.com
+    subject_prefix: "CI/CD"
+    smtp_host: smtp.gmail.com
+    smtp_port: 587
+    smtp_user: your-app@gmail.com
+    smtp_password: your-16-char-app-password
+    smtp_use_tls: true
+```
+
+### Email Receive Unit (TODO)
+
+This can receive emails to trigger units.
 
 ### File Unit
 
@@ -1272,37 +1224,22 @@ units:
 This approach checks for git updates only when the cron triggers it, reducing
 system overhead while maintaining automated builds.
 
-### Email Unit
+### Log Unit
 
-The Email unit sends email notifications with optional output from triggering
-units. This is useful for alerting on build failures, test results, or other
-important events. Supports both plain SMTP and STARTTLS encryption.
+The Log unit writes log entries to a file. This is useful for recording events,
+errors, or other information during pipeline execution. The logfile is created
+if it doesn't exist, and entries are appended with timestamps.
 
 **Fields:**
 
-- **`to`** (required): Array of email addresses to send to
-- **`from`** (required): Sender email address
-- **`subject_prefix`** (optional): Email subject line prefix. ':
-  <unit-name>:<success|fail>' is appended after prefix and is always included.
-- **`smtp_host`** (required): SMTP server hostname
-- **`smtp_port`** (optional): SMTP server port. Defaults to 587 (submission
-  port)
-- **`smtp_user`** (optional): SMTP username for authentication
-- **`smtp_password`** (optional): SMTP password for authentication
-- **`smtp_use_tls`** (optional): Enable STARTTLS encryption. Defaults to true
-- **`include_output`** (optional): Include captured output from triggering unit.
-  Defaults to true
-- **`limit_lines`** (optional): limit number email lines emailed to number
-  specified.
+- **`file`** (required): Path to the logfile where entries will be written
 
 **Behavior:**
 
-- Sends plain text emails using SMTP
-- Can include output from the unit that triggered it (useful for log/error
-  reporting)
-- Supports SMTP authentication
-- STARTTLS encryption enabled by default
-- Works with common email providers (Gmail, SendGrid, Mailgun, etc.)
+- Creates the logfile and parent directories if they don't exist
+- Appends log entries with timestamps
+- File permissions are set to 0644
+- Directory permissions are set to 0755
 
 **Configuration example:**
 
@@ -1311,60 +1248,28 @@ config:
   state_location: /var/lib/brun/state.yaml
 
 units:
-  - boot:
-      name: boot-trigger
+  - start:
+      name: start-trigger
       on_success:
         - build
+      always:
+        - log-run
 
   - run:
       name: build
       script: |
         go build -o brun ./cmd/brun
-        go test -v
       on_failure:
-        - email-failure
+        - log-error
 
-  - email:
-      name: email-failure
-      to:
-        - admin@example.com
-        - alerts@example.com
-      from: brun@example.com
-      subject_prefix: "Build Alert"
-      smtp_host: smtp.gmail.com
-      smtp_port: 587
-      smtp_user: brun@example.com
-      smtp_password: your-app-password
-      smtp_use_tls: true
-      include_output: true
+  - log:
+      name: log-run
+      file: /var/log/brun/pipeline.log
+
+  - log:
+      name: log-error
+      file: /var/log/brun/errors.log
 ```
-
-This will send emails with subjects like:
-
-- `Build Alert: build:success` (on success)
-- `Build Alert: build:fail` (on failure)
-
-**Gmail example:**
-
-For Gmail, you need to use an app-specific password:
-
-```yaml
-- email:
-    name: notify-admin
-    to:
-      - you@gmail.com
-    from: your-app@gmail.com
-    subject_prefix: "CI/CD"
-    smtp_host: smtp.gmail.com
-    smtp_port: 587
-    smtp_user: your-app@gmail.com
-    smtp_password: your-16-char-app-password
-    smtp_use_tls: true
-```
-
-### Email Receive Unit (TODO)
-
-This can receive emails to trigger units.
 
 ### Reboot Unit
 
@@ -1387,6 +1292,101 @@ units:
   - reboot:
       name: reboot-system
       delay: 5 # optional delay in seconds before reboot (default: 0)
+```
+
+### Run Unit
+
+The Run unit executes arbitrary shell commands or scripts. This is the primary
+execution unit for running builds, tests, or any other commands. The exit code
+determines success or failure, which then triggers the appropriate units.
+
+Multiple Run units can be defined in a configuration file to create build and
+test pipelines.
+
+**Fields:**
+
+- **`script`** (required): Shell commands to execute. Can be a single command or
+  a multiline script
+- **`directory`** (optional): Working directory where the script will be
+  executed. Defaults to the directory where BRun was invoked
+- **`timeout`** (optional): Time out duration for the task to complete (e.g.,
+  `30s`, `5m`, `1h`, `1h30m`). If no timeout is specified, it runs until
+  completion. If the task times out, an error message is logged.
+- **`shell`** (optional): specify shell to use when running command (bash,
+  etc.). By default, 'sh' is used.
+- **`use_pty`** (optional): when set to true, wraps the command with `script` to
+  provide a pseudo-TTY. This is useful for tools like BitBake that require a TTY
+  environment. Default is false.
+
+**Behavior:**
+
+- The script is executed using the system shell
+- Exit code 0 is considered success and triggers `on_success` units
+- Nonzero exit codes are considered failures and trigger `on_failure` units
+- Both `STDOUT` and `STDERR` are logged
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - boot:
+      name: boot-trigger
+      on_success:
+        - build
+
+  - run:
+      name: build
+      directory: /home/user/project
+      script: |
+        go build -o brun ./cmd/brun
+        go test -v
+      on_success:
+        - deploy
+      on_failure:
+        - notify-failure
+
+  - run:
+      name: deploy
+      script: |
+        ./deploy.sh
+
+  - run:
+      name: bitbake-build
+      shell: bash
+      use_pty: true
+      script: |
+        source oe-init-build-env
+        bitbake core-image-minimal
+      timeout: 2h
+```
+
+### Start Unit
+
+The Start trigger always fires when BRun runs. This can be used to trigger other
+units every time the program executes, regardless of boot state or other
+conditions.
+
+**Behavior:**
+
+- Always triggers on every BRun
+- Does not maintain any state
+- Useful for unconditional execution pipelines
+
+**Configuration example:**
+
+```yaml
+config:
+  state_location: /var/lib/brun/state.yaml
+
+units:
+  - start:
+      name: start-trigger
+      on_success:
+        - build-unit
+        - test-unit
 ```
 
 ## Program Lifecycle
