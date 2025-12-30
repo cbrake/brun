@@ -70,7 +70,7 @@ dependencies.
     - [Email Unit](#email-unit)
     - [Email Receive Unit (TODO)](#email-receive-unit-todo)
     - [Reboot Unit](#reboot-unit)
-  - [Program lifecycle](#program-lifecycle)
+  - [Program Lifecycle](#program-lifecycle)
   - [Status](#status)
   <!--toc:end-->
 
@@ -193,7 +193,7 @@ units:
 To install, download the
 [latest release](https://github.com/cbrake/brun/releases) binary.
 
-### Example install on Linux:
+### Example Install on Linux:
 
 Copy and paste the following into your terminal:
 
@@ -529,7 +529,7 @@ config:
 
 **Fields:**
 
-- `**state_location**` (required): Path to the state file where units store
+- **`state_location`** (required): Path to the state file where units store
   their state between runs.
   - Defaults to `/var/lib/brun/state.yaml` for root installs
   - Defaults to `~/.config/brun/state.yaml` for user installs
@@ -761,25 +761,25 @@ test pipelines.
 
 **Fields:**
 
-- **script** (required): Shell commands to execute. Can be a single command or a
-  multi-line script
-- **directory** (optional): Working directory where the script will be executed.
-  Defaults to the directory where brun was invoked
-- **timeout** (optional): timeout duration for the task to complete (e.g.,
-  "30s", "5m", "1h", "1h30m"). If no timeout is specified, it runs until
+- **`script`** (required): Shell commands to execute. Can be a single command or
+  a multiline script
+- **`directory`** (optional): Working directory where the script will be
+  executed. Defaults to the directory where BRun was invoked
+- **`timeout`** (optional): Time out duration for the task to complete (e.g.,
+  `30s`, `5m`, `1h`, `1h30m`). If no timeout is specified, it runs until
   completion. If the task times out, an error message is logged.
-- **shell** (optional): specify shell to use when running command (bash, etc).
-  By default, 'sh' is used.
-- **use_pty** (optional): when set to true, wraps the command with `script` to
-  provide a pseudo-TTY. This is useful for tools like bitbake that require a TTY
+- **`shell`** (optional): specify shell to use when running command (bash,
+  etc.). By default, 'sh' is used.
+- **`use_pty`** (optional): when set to true, wraps the command with `script` to
+  provide a pseudo-TTY. This is useful for tools like BitBake that require a TTY
   environment. Default is false.
 
 **Behavior:**
 
 - The script is executed using the system shell
 - Exit code 0 is considered success and triggers `on_success` units
-- Non-zero exit codes are considered failures and trigger `on_failure` units
-- Both stdout and stderr are logged
+- Nonzero exit codes are considered failures and trigger `on_failure` units
+- Both `STDOUT` and `STDERR` are logged
 
 **Configuration example:**
 
@@ -822,16 +822,16 @@ units:
 ### Log Unit
 
 The Log unit writes log entries to a file. This is useful for recording events,
-errors, or other information during pipeline execution. The log file is created
+errors, or other information during pipeline execution. The logfile is created
 if it doesn't exist, and entries are appended with timestamps.
 
 **Fields:**
 
-- **file** (required): Path to the log file where entries will be written
+- **`file`** (required): Path to the logfile where entries will be written
 
 **Behavior:**
 
-- Creates the log file and parent directories if they don't exist
+- Creates the logfile and parent directories if they don't exist
 - Appends log entries with timestamps
 - File permissions are set to 0644
 - Directory permissions are set to 0755
@@ -872,7 +872,7 @@ The Count unit creates an entry in the state file for every unit that triggers
 this unit and counts how many times it has been triggered. This is useful for
 tracking how often specific events (like errors) occur or how many times
 particular units execute. The count quickly tells you something happened, and
-then the log files can be examined to understand why.
+then the logfiles can be examined to understand why.
 
 **Behavior:**
 
@@ -939,7 +939,7 @@ schedule parsing.
 
 **Fields:**
 
-- **schedule** (required): Cron schedule in standard format (minute hour day
+- **`schedule`** (required): Cron schedule in standard format (minute hour day
   month weekday)
 
 **Behavior:**
@@ -1027,7 +1027,7 @@ removed files are detected as changes.
 
 **Fields:**
 
-- **pattern** (required): Glob pattern to match files (supports `**` for
+- **`pattern`** (required): Glob pattern to match files (supports `**` for
   recursive matching)
 
 **Behavior:**
@@ -1152,24 +1152,24 @@ workspace and submodules are updated to the latest on the specified branch.
 
 **Fields:**
 
-- **repository** (required): Path to the Git repository to monitor
-- **branch** (required): Branch to monitor
-- **reset** (optional): optionally reset the workspace to the state of the repo
-  HEAD (`git reset --hard`)
-- **poll** (optional): polling interval for checking repository updates (e.g.,
-  "2m", "30s", "1h"). When set, the git unit actively polls for updates at the
+- **`repository`** (required): Path to the Git repository to monitor
+- **`branch`** (required): Branch to monitor
+- **`reset`** (optional): optionally reset the workspace to the state of the
+  repo HEAD (`git reset --hard`)
+- **`poll`** (optional): polling interval for checking repository updates (e.g.,
+  `2m`, `30s`, `1h`). When set, the git unit actively polls for updates at the
   specified interval. When omitted, the unit operates in passive mode: it will
   NOT check during orchestrator polling, but WILL check when explicitly
   triggered by another unit (e.g., via `on_success`). This enables event-driven
   workflows where git checks happen on-demand without continuous polling
   overhead.
-- **debug** (optional): when true, logs detailed git operation messages (fetch,
-  reset, submodule updates). Defaults to false.
+- **`debug`** (optional): when true, logs detailed git operation messages
+  (fetch, reset, submodule updates). Defaults to false.
 
 **SSH Authentication:**
 
 When using SSH-based Git repositories with systemd, the service requires access
-to your SSH agent. See the [Autostart with systemd](#autostart-with-systemd)
+to your SSH agent. See the [Auto tart with systemd](#autostart-with-systemd)
 section for configuration details on setting the `SSH_AUTH_SOCK` environment
 variable.
 
@@ -1280,18 +1280,19 @@ important events. Supports both plain SMTP and STARTTLS encryption.
 
 **Fields:**
 
-- **to** (required): Array of email addresses to send to
-- **from** (required): Sender email address
-- **subject_prefix** (optional): Email subject line prefix. ':
+- **`to`** (required): Array of email addresses to send to
+- **`from`** (required): Sender email address
+- **`subject_prefix`** (optional): Email subject line prefix. ':
   <unit-name>:<success|fail>' is appended after prefix and is always included.
-- **smtp_host** (required): SMTP server hostname
-- **smtp_port** (optional): SMTP server port. Defaults to 587 (submission port)
-- **smtp_user** (optional): SMTP username for authentication
-- **smtp_password** (optional): SMTP password for authentication
-- **smtp_use_tls** (optional): Enable STARTTLS encryption. Defaults to true
-- **include_output** (optional): Include captured output from triggering unit.
+- **`smtp_host`** (required): SMTP server hostname
+- **`smtp_port`** (optional): SMTP server port. Defaults to 587 (submission
+  port)
+- **`smtp_user`** (optional): SMTP username for authentication
+- **`smtp_password`** (optional): SMTP password for authentication
+- **`smtp_use_tls`** (optional): Enable STARTTLS encryption. Defaults to true
+- **`include_output`** (optional): Include captured output from triggering unit.
   Defaults to true
-- **limit_lines** (optional): limit number email lines emailed to number
+- **`limit_lines`** (optional): limit number email lines emailed to number
   specified.
 
 **Behavior:**
@@ -1373,7 +1374,7 @@ sequences.
 
 **Fields:**
 
-- **delay** (optional): Number of seconds to wait before executing reboot
+- **`delay`** (optional): Number of seconds to wait before executing reboot
   (default: 0 for immediate reboot)
 
 **Configuration example:**
@@ -1388,7 +1389,7 @@ units:
       delay: 5 # optional delay in seconds before reboot (default: 0)
 ```
 
-## Program lifecycle
+## Program Lifecycle
 
 BRun traps kill signals and waits for all triggers to complete before exiting.
 
@@ -1408,4 +1409,4 @@ anything major.
 See [issues](https://github.com/cbrake/brun/issues) and [ideas](ideas.md) for
 future direction.
 
-I have no idea if this works on Windows -- feel free to try and report status.
+I have no idea if this works on Windows - feel free to try and report status.
