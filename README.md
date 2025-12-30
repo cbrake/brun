@@ -47,7 +47,7 @@ dependencies.
   - [Table of Contents](#table-of-contents)
   - [Example Configuration](#example-configuration)
   - [Install](#install)
-    - [Example install on Linux:](#example-install-on-linux)
+    - [Example Install on Linux:](#example-install-on-linux)
     - [Auto Start with Systemd](#auto-start-with-systemd)
     - [Updating](#updating)
   - [Usage](#usage)
