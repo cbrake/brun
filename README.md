@@ -67,6 +67,7 @@ dependencies.
     - [File Unit](#file-unit)
     - [Git Unit](#git-unit)
     - [Log Unit](#log-unit)
+    - [Ntfy Unit](#ntfy-unit)
     - [Reboot Unit](#reboot-unit)
     - [Run Unit](#run-unit)
     - [Start Unit](#start-unit)
