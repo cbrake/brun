@@ -1479,3 +1479,6 @@ See [issues](https://github.com/cbrake/brun/issues) and [ideas](ideas.md) for
 future direction.
 
 I have no idea if this works on Windows - feel free to try and report status.
+
+If you use BRun, please star/follow the repo and
+[let me know](https://github.com/cbrake/brun/discussions).
