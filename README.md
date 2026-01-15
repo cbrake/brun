@@ -29,15 +29,15 @@ dependencies.
 - 📄 simple YAML [config format](#file-format)
 - 🔒 built-in [secrets management](#secrets-management) with SOPS encryption
 
-**Things you might do with BRun**
+**Things you might do with BRun:**
 
-- Reboot cycle test for embedded systems.
-- Nightly Yocto builds on your powerful workstation.
-- Run admin tasks like backups.
-- Monitor the `/etc` directory a server for changes.
-- Implemented a watchdog that reboots the system under certain conditions.
-- Run build/test/deploy pipelines.
-- Notify someone when CPU usage is too high or disk space too low.
+- 🔄 Reboot cycle test for embedded systems.
+- 🌙 Nightly Yocto builds on your powerful workstation.
+- 🗄️ Run admin tasks like backups.
+- 👀 Monitor the `/etc` directory a server for changes.
+- 🐕 Implemented a watchdog that reboots the system under certain conditions.
+- 🚀 Run build/test/deploy pipelines.
+- 📊 Notify someone when CPU usage is too high or disk space too low.
 
 ## Table of Contents
 
@@ -75,7 +75,7 @@ dependencies.
   - [Status](#status)
   <!--toc:end-->
 
-## Example Configuration
+## 📝 Example Configuration
 
 Here's an example showing how various units are specified and interact (see also
 more [examples](examples) and our own [dogfood](build.yaml)):
@@ -189,12 +189,12 @@ units:
       delay: 5
 ```
 
-## Install
+## 💿 Install
 
 To install, download the
 [latest release](https://github.com/cbrake/brun/releases) binary.
 
-### Example Install on Linux:
+### 🐧 Example Install on Linux:
 
 Copy and paste the following into your terminal:
 
@@ -216,7 +216,7 @@ fi
 rm ${BINARY}
 ```
 
-### Auto Start with Systemd
+### 🤖 Auto Start with Systemd
 
 If you would like to install a systemd unit to run BRun automatically, then run:
 
@@ -260,12 +260,12 @@ systemctl --user restart brun.service
 - **System Services**: For root services, configure a dedicated service user
   with its own SSH key
 
-### Updating
+### ⬆️ Updating
 
 After initial installation, the `brun update` command can be used to update to
 the latest release.
 
-## Usage
+## 🎯 Usage
 
 ```
 Usage: brun COMMAND [OPTIONS]
@@ -292,7 +292,7 @@ Examples:
   brun install -daemon
 ```
 
-**One-time run:**
+**🎬 One-time run:**
 
 By default, BRun runs once, checks all trigger conditions, executes any units
 whose conditions are met, and then exits. This is suitable for:
@@ -305,7 +305,7 @@ whose conditions are met, and then exits. This is suitable for:
 brun run config.yaml
 ```
 
-**Daemon mode:**
+**♾️ Daemon mode:**
 
 BRun supports a daemon mode that continuously monitors trigger conditions and
 executes units when triggered. In this mode, triggers are checked every 10
@@ -319,7 +319,7 @@ seconds. This is suitable for:
 brun run config.yaml -daemon
 ```
 
-## Circular Dependency Protection
+## 🔁 Circular Dependency Protection
 
 BRun protects against circular dependencies when units trigger each other. For
 example, if Unit A triggers Unit B, and Unit B triggers Unit A, this could cause
@@ -408,7 +408,7 @@ In this example:
 - The `notify-team` email unit runs twice (once from each build)
 - This is allowed because `notify-team` is not in a circular dependency
 
-## Logging
+## 📋 Logging
 
 By default, logging is sent to `STDOUT`, and each unit logs:
 
@@ -417,7 +417,7 @@ By default, logging is sent to `STDOUT`, and each unit logs:
 
 Additional log units can log specific events.
 
-## State
+## 💾 State
 
 BRun uses a single common state file (YAML format) where all units store state
 between runs. This unified approach simplifies state management and makes it
@@ -448,7 +448,7 @@ Each unit stores its state under a key corresponding to its name or type.
 The state file is automatically created with appropriate permissions (0644) when
 BRun runs for the first time.
 
-## Secrets Management
+## 🔐 Secrets Management
 
 BRun supports encrypting configuration files with
 [SOPS (Secrets OPerationS)](https://github.com/getsops/sops), allowing you to
@@ -465,23 +465,23 @@ config files.
 
 **Quick Start:**
 
-1. Install [SOPS](https://github.com/getsops/sops/releases) and
+1. 📥 Install [SOPS](https://github.com/getsops/sops/releases) and
    [age](https://github.com/FiloSottile/age/releases)
 
-2. Generate an encryption key:
+2. 🔑 Generate an encryption key:
 
 ```bash
 age-keygen -o ~/.config/sops/age/keys.txt
 # Save the public key (age1...) shown in output
 ```
 
-3. Encrypt your config file:
+3. 🔐 Encrypt your config file:
 
 ```bash
 sops --encrypt --age <your-public-key> --in-place config.yaml
 ```
 
-4. Run BRun normally:
+4. ▶️ Run BRun normally:
 
 ```bash
 brun run config.yaml  # Automatically decrypts
@@ -510,7 +510,7 @@ token, etc.) while leaving structural fields like `name`, `script`, and
 
 See [`.sops.yaml`](.sops.yaml) for a complete example configuration.
 
-## File Format
+## 📑 File Format
 
 YAML is used for the BRun config file and is similar to config files used in
 GitLab CI/CD, Drone, Ansible, etc.
@@ -519,7 +519,7 @@ The configuration is composed of chainable units. Each unit can trigger
 additional units. This allows us to start/sequence operations and create
 workflow pipelines.
 
-### Config
+### ⚙️ Config
 
 The BRun file consists of a required `config` section with the following fields:
 
@@ -652,20 +652,21 @@ script: |
 See the [Go template documentation](https://pkg.go.dev/text/template) for full
 syntax reference.
 
-## Units
+## 🧩 Units
 
 BRun supports the following unit types:
 
-- [Boot Unit](#boot-unit) - Triggers once per boot cycle
-- [Count Unit](#count-unit) - Tracks trigger counts
-- [Cron Unit](#cron-unit) - Triggers based on cron schedule
-- [Email Unit](#email-unit) - Sends email notifications
-- [File Unit](#file-unit) - Monitors files for changes
-- [Git Unit](#git-unit) - Monitors Git repository for commits
-- [Log Unit](#log-unit) - Writes log entries to files
-- [Reboot Unit](#reboot-unit) - Reboots the system
-- [Run Unit](#run-unit) - Executes shell commands/scripts
-- [Start Unit](#start-unit) - Triggers on every program start
+- 🥾 [Boot Unit](#boot-unit) - Triggers once per boot cycle
+- 🔢 [Count Unit](#count-unit) - Tracks trigger counts
+- ⏰ [Cron Unit](#cron-unit) - Triggers based on cron schedule
+- ✉️ [Email Unit](#email-unit) - Sends email notifications
+- 📁 [File Unit](#file-unit) - Monitors files for changes
+- 🔀 [Git Unit](#git-unit) - Monitors Git repository for commits
+- 📝 [Log Unit](#log-unit) - Writes log entries to files
+- 🔔 [Ntfy Unit](#ntfy-unit) - Sends push notifications
+- 🔄 [Reboot Unit](#reboot-unit) - Reboots the system
+- ▶️ [Run Unit](#run-unit) - Executes shell commands/scripts
+- ⭐ [Start Unit](#start-unit) - Triggers on every program start
 
 ### Common Unit Fields
 
@@ -690,7 +691,7 @@ the git unit will only execute if there are actual git updates detected. This
 prevents unnecessary operations and ensures triggers only fire when their
 conditions are truly met.
 
-### Boot Unit
+### 🥾 Boot Unit
 
 The boot unit triggers if this is the first time the program has been run since
 the system booted. The boot unit stores the last boot time in the common state
@@ -725,7 +726,7 @@ When the boot trigger fires successfully, it will trigger the units listed in
 The boot time is automatically stored in the common state file under the unit's
 name.
 
-### Count Unit
+### 🔢 Count Unit
 
 The Count unit creates an entry in the state file for every unit that triggers
 this unit and counts how many times it has been triggered. This is useful for
@@ -788,7 +789,7 @@ units:
       name: count-failures
 ```
 
-### Cron Unit
+### ⏰ Cron Unit
 
 The Cron unit is a trigger that fires based on a cron schedule. It uses the
 standard cron format to define when the trigger should activate. In daemon mode,
@@ -878,7 +879,7 @@ units:
         # health check commands here
 ```
 
-### Email Unit
+### ✉️ Email Unit
 
 The Email unit sends email notifications with optional output from triggering
 units. This is useful for alerting on build failures, test results, or other
@@ -968,11 +969,11 @@ For Gmail, you need to use an app-specific password:
     smtp_use_tls: true
 ```
 
-### Email Receive Unit (TODO)
+### 📨 Email Receive Unit (TODO)
 
 This can receive emails to trigger units.
 
-### File Unit
+### 📁 File Unit
 
 The File unit monitors files and triggers when they are changed. Files can be
 specified using glob patterns with support for `**` recursive matching. New or
@@ -1093,7 +1094,7 @@ Run with: `brun run config.yaml -daemon`
 This creates a continuous integration system that automatically builds and tests
 your code whenever source files are modified.
 
-### Git Unit
+### 🔀 Git Unit
 
 The Git unit is a trigger that fires when changes are detected in a Git
 repository. It monitors the repository's HEAD commit and triggers when new
@@ -1225,7 +1226,7 @@ units:
 This approach checks for git updates only when the cron triggers it, reducing
 system overhead while maintaining automated builds.
 
-### Log Unit
+### 📝 Log Unit
 
 The Log unit writes log entries to a file. This is useful for recording events,
 errors, or other information during pipeline execution. The logfile is created
@@ -1272,7 +1273,7 @@ units:
       file: /var/log/brun/errors.log
 ```
 
-### Ntfy Unit
+### 🔔 Ntfy Unit
 
 The ntfy unit allows notifications be sent out using the
 [ntfy.sh](https://ntfy.sh/) service.
@@ -1339,7 +1340,7 @@ units:
       include_output: false
 ```
 
-### Reboot Unit
+### 🔄 Reboot Unit
 
 The reboot unit logs and reboots the system. This is typically used in reboot
 cycle testing where the boot trigger can count boot cycles and trigger test
@@ -1362,7 +1363,7 @@ units:
       delay: 5 # optional delay in seconds before reboot (default: 0)
 ```
 
-### Run Unit
+### ▶️ Run Unit
 
 The Run unit executes arbitrary shell commands or scripts. This is the primary
 execution unit for running builds, tests, or any other commands. The exit code
@@ -1431,7 +1432,7 @@ units:
       timeout: 2h
 ```
 
-### Start Unit
+### ⭐ Start Unit
 
 The Start trigger always fires when BRun runs. This can be used to trigger other
 units every time the program executes, regardless of boot state or other
@@ -1457,11 +1458,11 @@ units:
         - test-unit
 ```
 
-## Program Lifecycle
+## 🔄 Program Lifecycle
 
 BRun traps kill signals and waits for all triggers to complete before exiting.
 
-## Status
+## 🚦 Status
 
 This project is in the exploratory phase as we explore various concepts. The
 syntax of the BRun file may change as we learn how to better do this.
