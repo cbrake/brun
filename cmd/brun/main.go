@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -63,20 +64,13 @@ func printUsage() {
 }
 
 func cmdInstall(args []string) {
-	daemonMode := false
-
-	// Parse flags
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "-daemon":
-			daemonMode = true
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown flag: %s\n", args[i])
-			os.Exit(1)
-		}
+	fs := flag.NewFlagSet("install", flag.ExitOnError)
+	daemonMode := fs.Bool("daemon", false, "Install service in daemon mode (continuous monitoring)")
+	if err := fs.Parse(args); err != nil {
+		os.Exit(1)
 	}
 
-	if err := brun.Install(daemonMode); err != nil {
+	if err := brun.Install(*daemonMode); err != nil {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)
 	}
@@ -92,37 +86,17 @@ func cmdRun(args []string) {
 	}
 
 	configFile := args[0]
-	daemonMode := false
-	singleUnit := ""
-	triggerUnit := ""
 
-	// Parse flags
-	for i := 1; i < len(args); i++ {
-		switch args[i] {
-		case "-daemon":
-			daemonMode = true
-		case "-unit":
-			if i+1 >= len(args) {
-				fmt.Fprintf(os.Stderr, "Error: -unit requires a unit name\n")
-				os.Exit(1)
-			}
-			singleUnit = args[i+1]
-			i++ // Skip the next argument as it's the unit name
-		case "-trigger":
-			if i+1 >= len(args) {
-				fmt.Fprintf(os.Stderr, "Error: -trigger requires a unit name\n")
-				os.Exit(1)
-			}
-			triggerUnit = args[i+1]
-			i++ // Skip the next argument as it's the unit name
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown flag: %s\n", args[i])
-			os.Exit(1)
-		}
+	fs := flag.NewFlagSet("run", flag.ExitOnError)
+	daemonMode := fs.Bool("daemon", false, "Run in daemon mode (continuous monitoring)")
+	singleUnit := fs.String("unit", "", "Run a single unit (triggers disabled, useful for debugging)")
+	triggerUnit := fs.String("trigger", "", "Trigger a unit and execute its on_success triggers")
+	if err := fs.Parse(args[1:]); err != nil {
+		os.Exit(1)
 	}
 
 	// Validate mutually exclusive flags
-	if singleUnit != "" && triggerUnit != "" {
+	if *singleUnit != "" && *triggerUnit != "" {
 		fmt.Fprintf(os.Stderr, "Error: -unit and -trigger cannot be used together\n")
 		os.Exit(1)
 	}
@@ -147,32 +121,32 @@ func cmdRun(args []string) {
 	orchestrator := brun.NewOrchestrator(units)
 
 	// Handle single unit execution (no triggers)
-	if singleUnit != "" {
-		fmt.Printf("Running single unit: %s (triggers disabled)\n", singleUnit)
+	if *singleUnit != "" {
+		fmt.Printf("Running single unit: %s (triggers disabled)\n", *singleUnit)
 		ctx := context.Background()
-		if err := orchestrator.RunSingleUnit(ctx, singleUnit, false); err != nil {
-			fmt.Fprintf(os.Stderr, "Error running unit '%s': %v\n", singleUnit, err)
+		if err := orchestrator.RunSingleUnit(ctx, *singleUnit, false); err != nil {
+			fmt.Fprintf(os.Stderr, "Error running unit '%s': %v\n", *singleUnit, err)
 			os.Exit(1)
 		}
-		fmt.Printf("Unit '%s' completed successfully\n", singleUnit)
+		fmt.Printf("Unit '%s' completed successfully\n", *singleUnit)
 		return
 	}
 
 	// Handle trigger unit execution (with triggers)
-	if triggerUnit != "" {
-		fmt.Printf("Triggering unit: %s (triggers enabled)\n", triggerUnit)
+	if *triggerUnit != "" {
+		fmt.Printf("Triggering unit: %s (triggers enabled)\n", *triggerUnit)
 		ctx := context.Background()
-		if err := orchestrator.RunSingleUnit(ctx, triggerUnit, true); err != nil {
-			fmt.Fprintf(os.Stderr, "Error triggering unit '%s': %v\n", triggerUnit, err)
+		if err := orchestrator.RunSingleUnit(ctx, *triggerUnit, true); err != nil {
+			fmt.Fprintf(os.Stderr, "Error triggering unit '%s': %v\n", *triggerUnit, err)
 			os.Exit(1)
 		}
-		fmt.Printf("Unit '%s' and its triggers completed successfully\n", triggerUnit)
+		fmt.Printf("Unit '%s' and its triggers completed successfully\n", *triggerUnit)
 		return
 	}
 
 	// Configure daemon mode
-	orchestrator.SetDaemonMode(daemonMode)
-	if daemonMode {
+	orchestrator.SetDaemonMode(*daemonMode)
+	if *daemonMode {
 		fmt.Println("Running in daemon mode (press Ctrl+C to stop)...")
 	}
 

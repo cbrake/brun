@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Command-line flag parsing now uses the standard `flag` package, providing
+  more consistent error messages and automatic `-h`/`--help` support.
+
 ## [0.0.20] - 2025-12-30
 
 ### Added
