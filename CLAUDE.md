@@ -117,6 +117,12 @@ Run a specific test:
 go test -v -run TestSystemBootedTrigger
 ```
 
+### Logo
+
+`scripts/gen-logo.py` regenerates `assets/brun-logo.svg` and
+`assets/brun-logo-square.svg` from Fira Code glyph outlines (fontTools); its
+docstring has the `rsvg-convert` commands for the PNG derivatives.
+
 ## Security
 
 ### Secrets Management with SOPS
