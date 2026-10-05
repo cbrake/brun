@@ -19,15 +19,15 @@ dependencies.
 
 - ✨ **simple!!!**
 - ⚡ **fast!!!**
-- 📦 no dependencies - [install](#example-install-on-linux) a single statically
+- 📦 no dependencies - [install](#-example-install-on-linux) a single statically
   linked binary and go for it ...
-- 🛠️ built-in [units](#units) for common tasks like boot, scripts, cron, email,
+- 🛠️ built-in [units](#-units) for common tasks like boot, scripts, cron, email,
   git, file watching
 - 🔗 units can be chained into pipelines
 - 💻 first priority is to run native
 - 🚫 does not require containers (but may support them in the future)
-- 📄 simple YAML [config format](#file-format)
-- 🔒 built-in [secrets management](#secrets-management) with SOPS encryption
+- 📄 simple YAML [config format](#-file-format)
+- 🔒 built-in [secrets management](#-secrets-management) with SOPS encryption
 
 **Things you might do with BRun:**
 
@@ -45,34 +45,34 @@ dependencies.
 
 - [BRun](#brun)
   - [Table of Contents](#table-of-contents)
-  - [Example Configuration](#example-configuration)
-  - [Install](#install)
-    - [Example Install on Linux:](#example-install-on-linux)
-    - [Auto Start with Systemd](#auto-start-with-systemd)
-    - [Updating](#updating)
-  - [Usage](#usage)
-  - [Circular Dependency Protection](#circular-dependency-protection)
-  - [Logging](#logging)
-  - [State](#state)
-  - [Secrets Management](#secrets-management)
-  - [File Format](#file-format)
-    - [Config](#config)
-  - [Units](#units)
+  - [Example Configuration](#-example-configuration)
+  - [Install](#-install)
+    - [Example Install on Linux:](#-example-install-on-linux)
+    - [Auto Start with Systemd](#-auto-start-with-systemd)
+    - [Updating](#-updating)
+  - [Usage](#-usage)
+  - [Circular Dependency Protection](#-circular-dependency-protection)
+  - [Logging](#-logging)
+  - [State](#-state)
+  - [Secrets Management](#-secrets-management)
+  - [File Format](#-file-format)
+    - [Config](#-config)
+  - [Units](#-units)
     - [Common Unit Fields](#common-unit-fields)
-    - [Boot Unit](#boot-unit)
-    - [Count Unit](#count-unit)
-    - [Cron Unit](#cron-unit)
-    - [Email Unit](#email-unit)
-    - [Email Receive Unit (TODO)](#email-receive-unit-todo)
-    - [File Unit](#file-unit)
-    - [Git Unit](#git-unit)
-    - [Log Unit](#log-unit)
-    - [Ntfy Unit](#ntfy-unit)
-    - [Reboot Unit](#reboot-unit)
-    - [Run Unit](#run-unit)
-    - [Start Unit](#start-unit)
-  - [Program Lifecycle](#program-lifecycle)
-  - [Status](#status)
+    - [Boot Unit](#-boot-unit)
+    - [Count Unit](#-count-unit)
+    - [Cron Unit](#-cron-unit)
+    - [Email Unit](#-email-unit)
+    - [Email Receive Unit (TODO)](#-email-receive-unit-todo)
+    - [File Unit](#-file-unit)
+    - [Git Unit](#-git-unit)
+    - [Log Unit](#-log-unit)
+    - [Ntfy Unit](#-ntfy-unit)
+    - [Reboot Unit](#-reboot-unit)
+    - [Run Unit](#-run-unit)
+    - [Start Unit](#-start-unit)
+  - [Program Lifecycle](#-program-lifecycle)
+  - [Status](#-status)
   <!--toc:end-->
 
 ## 📝 Example Configuration
@@ -656,17 +656,17 @@ syntax reference.
 
 BRun supports the following unit types:
 
-- 🥾 [Boot Unit](#boot-unit) - Triggers once per boot cycle
-- 🔢 [Count Unit](#count-unit) - Tracks trigger counts
-- ⏰ [Cron Unit](#cron-unit) - Triggers based on cron schedule
-- ✉️ [Email Unit](#email-unit) - Sends email notifications
-- 📁 [File Unit](#file-unit) - Monitors files for changes
-- 🔀 [Git Unit](#git-unit) - Monitors Git repository for commits
-- 📝 [Log Unit](#log-unit) - Writes log entries to files
-- 🔔 [Ntfy Unit](#ntfy-unit) - Sends push notifications
-- 🔄 [Reboot Unit](#reboot-unit) - Reboots the system
-- ▶️ [Run Unit](#run-unit) - Executes shell commands/scripts
-- ⭐ [Start Unit](#start-unit) - Triggers on every program start
+- 🥾 [Boot Unit](#-boot-unit) - Triggers once per boot cycle
+- 🔢 [Count Unit](#-count-unit) - Tracks trigger counts
+- ⏰ [Cron Unit](#-cron-unit) - Triggers based on cron schedule
+- ✉️ [Email Unit](#-email-unit) - Sends email notifications
+- 📁 [File Unit](#-file-unit) - Monitors files for changes
+- 🔀 [Git Unit](#-git-unit) - Monitors Git repository for commits
+- 📝 [Log Unit](#-log-unit) - Writes log entries to files
+- 🔔 [Ntfy Unit](#-ntfy-unit) - Sends push notifications
+- 🔄 [Reboot Unit](#-reboot-unit) - Reboots the system
+- ▶️ [Run Unit](#-run-unit) - Executes shell commands/scripts
+- ⭐ [Start Unit](#-start-unit) - Triggers on every program start
 
 ### Common Unit Fields
 
@@ -1123,7 +1123,7 @@ workspace and submodules are updated to the latest on the specified branch.
 **SSH Authentication:**
 
 When using SSH-based Git repositories with systemd, the service requires access
-to your SSH agent. See the [Auto tart with systemd](#autostart-with-systemd)
+to your SSH agent. See the [Auto Start with Systemd](#-auto-start-with-systemd)
 section for configuration details on setting the `SSH_AUTH_SOCK` environment
 variable.
 
